@@ -4,7 +4,6 @@ import com.zb.dao.inter.KgcUserDao;
 import com.zb.util.database.BaseDao;
 
 public class KgcUserDaoImp extends BaseDao implements KgcUserDao {
-    private String nam = "";
 
 }
 
