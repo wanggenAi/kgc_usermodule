@@ -1,6 +1,11 @@
 package com.zb.servlet.login;
 
+import com.alibaba.fastjson.JSON;
+import com.zb.entity.respentity.ResultData;
+import com.zb.service.imp.UserServiceImp;
+import com.zb.service.inter.UserService;
 import com.zb.util.database.JDBCUtil;
+import com.zb.util.general.Constant;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -15,27 +20,18 @@ import java.sql.SQLException;
 
 @WebServlet("/login")
 public class ServletUserLogin extends HttpServlet {
+    private UserService userService = new UserServiceImp();
 
     @Override
     protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        Connection conn = JDBCUtil.getConn();
-        ResultSet rs = null;
-        PreparedStatement pst = null;
-        String result = "";
-        try {
-            String sql = "select * from lj";
-            pst = conn.prepareStatement(sql);
-            rs = pst.executeQuery();
-            while (rs.next()) {
-                String mc = rs.getString(2);
-                String dc = rs.getString(3);
-                result += mc + ":" + dc;
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            JDBCUtil.close(rs, pst, conn);
+        String userName = req.getParameter("userName");
+        String password = req.getParameter("password");
+        long uid = userService.authUserLogin(userName, password);
+        if (uid == Constant.NOT_FOUND_UID) { // 验证失败
+            resp.getWriter().write(JSON.toJSONString(ResultData.fail("用户或密码错误")));
+            return;
         }
-        resp.getWriter().write(result);
+        req.getSession().setAttribute("userId", uid);
+        resp.sendRedirect("index.jsp");
     }
 }

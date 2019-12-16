@@ -20,14 +20,14 @@ public class KgcUserDaoImp extends BaseDao<KgcUser> implements KgcUserDao {
     }
 
     /**
-     * 验证用户密码是否正确，返回用户实体
+     * 验证用户密码是否正确，返回用户UID
      * @param name
      * @param pwd
      * @return KgcUser
      */
-    public KgcUser getUser(String name, String pwd) {
-        String sql = "select * from kgc_user where username = ? and password = ?";
-        return selectOne(sql, KgcUser.class, name, pwd);
+    public long getUser(String name, String pwd) {
+        String sql = "select id from kgc_user where username = ? and password = ?";
+        return getUid(sql, name, pwd);
     }
 }
 

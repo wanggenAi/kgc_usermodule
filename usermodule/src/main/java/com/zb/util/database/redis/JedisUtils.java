@@ -55,11 +55,7 @@ public class JedisUtils {
     }
 
     public static void main(String[] args) {
-        Jedis jedis = JedisUtils.getJedis();
-        jedis.setex("ceshi", 100, "哈哈哈");
-        String result = jedis.get("ceshi");
-        JedisUtils.close(jedis);;
-        System.out.println(result);
+
     }
 
     //添加
