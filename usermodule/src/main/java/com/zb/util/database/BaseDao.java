@@ -54,6 +54,28 @@ public class BaseDao<T> {
         return list.isEmpty() ? null : list.get(0);
     }
 
+    public boolean isExist(String sql, Object... args) {
+        Connection conn = null;
+        PreparedStatement pst = null;
+        ResultSet rs = null;
+        try {
+            conn = JDBCUtil.getConn();
+            pst = conn.prepareStatement(sql);
+            for (int i = 0; i < args.length; i++) {
+                pst.setObject(i + 1, args[i]);
+            }
+            rs = pst.executeQuery();
+            if (rs.next()) {
+                return true;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            JDBCUtil.close(rs, pst, conn);
+        }
+        return false;
+    }
+
     /**
      * 查询所有记录
      */

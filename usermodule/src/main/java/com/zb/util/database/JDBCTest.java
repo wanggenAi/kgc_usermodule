@@ -15,21 +15,18 @@ import java.util.Map;
 
 public class JDBCTest {
     public static void main(String[] args) {
-/*        Connection conn = JDBCUtil.getConn();
+        Connection conn = JDBCUtil.getConn();
         ResultSet rs = null;
         PreparedStatement pst = null;
         BaseDao<Object> baseDao = new BaseDao<>();
         PageInfo pageInfo = new PageInfo();
         pageInfo.setCurrentPage(2);
         String sql = "select * from levelrule order by id desc";
-//        List<Map<String, Object>> list = baseDao.selectMany(sql);
         baseDao.pagedQuery(pageInfo,sql);
         String jsonStr = JSONObject.toJSONString(pageInfo);
         JSONObject jb = JSONObject.parseObject(jsonStr);
         List<Map<String,Object>> list = jb.getObject("list", List.class);
-        System.out.println(list.toString());*/
-        long dateTime = 14830682769461L;
-        System.out.println(DateConvert.longToDateTime(dateTime));
+        System.out.println(list.toString());
 
     }
 }
