@@ -32,7 +32,6 @@ public class JwtHelper {
 
     /**
      * @param userId     - 用户编号
-     * @param userName   - 用户名
      * @param identities - 客户端信息（变长参数），目前包含浏览器信息，用于客户端拦截器校验，防止跨域非法访问
      * @Author: Helon
      * @deprecated  生成JWT字符串
@@ -43,7 +42,7 @@ public class JwtHelper {
      * @Data: 2018/7/28 19:26
      * @Modified By:
      */
-    public static String generateJWT(String userId, String userName, String... identities) {
+    public static String generateJWT(String userId, String... identities) {
         //签名算法，选择SHA-256
         SignatureAlgorithm signatureAlgorithm = SignatureAlgorithm.HS256;
         //获取当前系统时间
@@ -74,8 +73,6 @@ public class JwtHelper {
                  */
                 //加密后的客户编号
                 .claim("userId", AESSecretUtil.encryptToStr(userId, SecretConstant.DATAKEY))
-                //客户名称
-                .claim("userName", userName)
                 //客户端浏览器信息
                 .claim("userAgent", identities[0])
                 //Signature
@@ -115,9 +112,8 @@ public class JwtHelper {
      * @param jsonWebToken - 页面传过来的token
      * @deprecated: 校验JWT是否有效
      * @return json字符串的demo:<br/>
-     * {"freshToken":"A.B.C","userName":"Judy","userId":"123", "userAgent":"xxxx"}
+     * {"freshToken":"A.B.C","userId":"123", "userAgent":"xxxx"}
      * <br/>freshToken-刷新后的jwt
-     * <br/>userName-客户名称
      * <br/>userId-客户编号
      * <br/>userAgent-客户端浏览器信息
      */
@@ -130,12 +126,10 @@ public class JwtHelper {
             retMap = new HashMap<>();
             //加密后的客户编号
             retMap.put("userId", decryptUserId);
-            //客户名称
-            retMap.put("userName", claims.get("userName"));
             //客户端浏览器信息
             retMap.put("userAgent", claims.get("userAgent"));
             //刷新JWT
-            retMap.put("freshToken", generateJWT(decryptUserId, (String) claims.get("userName"), (String) claims.get("userAgent"), (String) claims.get("domainName")));
+            retMap.put("freshToken", generateJWT(decryptUserId, (String) claims.get("userAgent"), (String) claims.get("domainName")));
         } else {
             logger.warn("[JWTHelper]-JWT解析出claims为空");
         }
@@ -143,7 +137,7 @@ public class JwtHelper {
     }
 
     public static void main(String[] args) {
-        String jsonWebKey = generateJWT("123", "Judy",
+        String jsonWebKey = generateJWT("123",
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Safari/537.36");
         System.out.println(jsonWebKey);
         Claims claims = parseJWT(jsonWebKey);

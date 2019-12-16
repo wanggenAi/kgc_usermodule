@@ -21,17 +21,15 @@ import java.sql.SQLException;
 @WebServlet("/login")
 public class ServletUserLogin extends HttpServlet {
     private UserService userService = new UserServiceImp();
-
+    private String SESSION_CUSTOMER_NO_KEY = "session_customer_no_key";
     @Override
     protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        String userName = req.getParameter("userName");
-        String password = req.getParameter("password");
-        long uid = userService.authUserLogin(userName, password);
+        long uid = userService.authUserLogin(req);
         if (uid == Constant.NOT_FOUND_UID) { // 验证失败
             resp.getWriter().write(JSON.toJSONString(ResultData.fail("用户或密码错误")));
             return;
         }
-        req.getSession().setAttribute("userId", uid);
+        req.getSession().setAttribute(SESSION_CUSTOMER_NO_KEY, uid);
         resp.sendRedirect("index.jsp");
     }
 }

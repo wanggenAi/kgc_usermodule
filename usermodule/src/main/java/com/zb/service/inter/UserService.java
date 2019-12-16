@@ -1,5 +1,7 @@
 package com.zb.service.inter;
 
+import javax.servlet.http.HttpServletRequest;
+
 public interface UserService {
-    long authUserLogin(String name, String pwd);
+    long authUserLogin(HttpServletRequest req);
 }
