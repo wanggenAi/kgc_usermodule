@@ -45,9 +45,9 @@ public class JwtHelper {
     public static String generateJWT(String userId, String... identities) {
         //签名算法，选择SHA-256
         SignatureAlgorithm signatureAlgorithm = SignatureAlgorithm.HS256;
-        //获取当前系统时间
+        /*//获取当前系统时间
         long nowTimeMillis = System.currentTimeMillis();
-        Date now = new Date(nowTimeMillis);
+        Date now = new Date(nowTimeMillis);*/
         //将BASE64SECRET常量字符串使用base64解码成字节数组
         byte[] apiKeySecretBytes = DatatypeConverter.parseBase64Binary(SecretConstant.BASE64SECRET);
         //使用HmacSHA256签名算法生成一个HS256的签名秘钥Key
@@ -73,8 +73,8 @@ public class JwtHelper {
                  */
                 //加密后的客户编号
                 .claim("userId", AESSecretUtil.encryptToStr(userId, SecretConstant.DATAKEY))
-                //客户端浏览器信息
-                .claim("userAgent", identities[0])
+                /*//客户端浏览器信息
+                .claim("userAgent", identities[0])*/
                 //Signature
                 .signWith(signatureAlgorithm, signingKey);
         /*//添加Token过期时间 暂时不设置，使用redis的过期时间
@@ -126,10 +126,10 @@ public class JwtHelper {
             retMap = new HashMap<>();
             //加密后的客户编号
             retMap.put("userId", decryptUserId);
-            //客户端浏览器信息
-            retMap.put("userAgent", claims.get("userAgent"));
+            /*//客户端浏览器信息
+            retMap.put("userAgent", claims.get("userAgent"));*/
             //刷新JWT
-            retMap.put("freshToken", generateJWT(decryptUserId, (String) claims.get("userAgent"), (String) claims.get("domainName")));
+            retMap.put("freshToken", generateJWT(decryptUserId));
         } else {
             logger.warn("[JWTHelper]-JWT解析出claims为空");
         }
@@ -137,8 +137,7 @@ public class JwtHelper {
     }
 
     public static void main(String[] args) {
-        String jsonWebKey = generateJWT("123",
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Safari/537.36");
+        String jsonWebKey = generateJWT("123");
         System.out.println(jsonWebKey);
         Claims claims = parseJWT(jsonWebKey);
         System.out.println(claims);

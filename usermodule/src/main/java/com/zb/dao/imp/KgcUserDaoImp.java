@@ -8,6 +8,7 @@ public class KgcUserDaoImp extends BaseDao<KgcUser> implements KgcUserDao {
 
     /**
      * 判断用户名是否存在
+     *
      * @param name
      * @return
      */
@@ -21,6 +22,7 @@ public class KgcUserDaoImp extends BaseDao<KgcUser> implements KgcUserDao {
 
     /**
      * 验证用户密码是否正确，返回用户UID
+     *
      * @param name
      * @param pwd
      * @return KgcUser
@@ -29,5 +31,18 @@ public class KgcUserDaoImp extends BaseDao<KgcUser> implements KgcUserDao {
         String sql = "select id from kgc_user where username = ? and password = ?";
         return getUid(sql, name, pwd);
     }
+
+    /**
+     * 根据uid查询用户实体
+     */
+    public KgcUser getUserById(long uid) {
+        String sql = "select * from kgc_user where id = ?";
+        return selectOne(sql, KgcUser.class, uid);
+    }
+
+    /**
+     * 根据uid查询关注、粉丝..表
+     */
+
 }
 

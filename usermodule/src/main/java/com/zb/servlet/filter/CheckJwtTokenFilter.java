@@ -24,6 +24,9 @@ public class CheckJwtTokenFilter implements Filter {
         // 从请求头中获取jwt串，与前端约定好存放jwt的请求头属性名为User-Token
         HttpServletRequest hreq = (HttpServletRequest)req;
         HttpServletResponse hresp = (HttpServletResponse)resp;
+        req.setCharacterEncoding("utf-8");
+        resp.setCharacterEncoding("utf-8");
+        resp.setContentType("text/html;charset=UTF-8");
         String jwt = hreq.getHeader("User-Token");
         // 判断jwt是否有效
         if (StringUtils.isNotBlank(jwt)) {
@@ -31,27 +34,23 @@ public class CheckJwtTokenFilter implements Filter {
             String retJson = JwtHelper.validateLogin(jwt);
             if (StringUtils.isNotBlank(retJson)) {
                 JSONObject jsonObject = JSONObject.parseObject(retJson);
-                // 校验客户端信息
-                String userAgent = hreq.getHeader("User-Agent");
-                if (userAgent.equals(jsonObject.getString("userAgent"))) {
-                    // 校验该串是否存在于redis中
-                    long expire = JedisUtils.ttl(jwt);
-                    if (expire > 0) {
-                        JedisUtils.expire(jwt, SecretConstant.EXPIRESSECOND);
-                    } else {
-                        hresp.getWriter().write(JSON.toJSONString(ResultData.fail(Constant.TOKEN_ERROR, "客户端验证异常")));
-                        return;
-                    }
+                // 校验该串是否存在于redis中
+                long expire = JedisUtils.ttl(jwt);
+                if (expire > 0) {
+                    JedisUtils.expire(jwt, SecretConstant.EXPIRESSECOND);
+                    chain.doFilter(req, resp);
                 } else {
-                    hresp.getWriter().write(JSON.toJSONString(ResultData.fail(Constant.TOKEN_ERROR, "客户端验证异常")));
+                    hresp.getWriter().write(JSON.toJSONString(ResultData.fail(Constant.TOKEN_ERROR, "token是错误的")));
                     return;
                 }
             } else {
-                hresp.getWriter().write(JSON.toJSONString(ResultData.fail(Constant.TOKEN_ERROR, "token验证无效！")));
+                hresp.getWriter().write(JSON.toJSONString(ResultData.fail(Constant.TOKEN_ERROR, "token验证无效")));
                 return;
             }
+        } else {
+            hresp.getWriter().write(JSON.toJSONString(ResultData.fail(Constant.TOKEN_ERROR, "token验证无效！")));
+            return;
         }
-        chain.doFilter(req, resp);
     }
 
     public void init(FilterConfig config) throws ServletException {

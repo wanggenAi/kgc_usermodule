@@ -3,6 +3,6 @@
 <%@ page isELIgnored="false"%>
 <html>
 <body>
-<h2>${userId}</h2>
+<h2>${header["User-Token"]}</h2>
 </body>
 </html>

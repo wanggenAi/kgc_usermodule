@@ -4,11 +4,35 @@
     <meta charset="UTF-8">
     <title>Title</title>
 </head>
+<script src="js/jquery-1.12.4.min.js"></script>
+<script>
+
+    $(function () {
+        $("#mylogin").click(function () {
+            $.ajax({
+                type: "post", // 提交的方法
+                url: "login",
+                data: $('#myForm').serialize(),
+                error: function (request) {
+                    alert("connection error")
+                },
+                success: function (data, textStatus, request) {
+                    alert(data);
+                    var tokenid = request.getResponseHeader("User-Token");
+                    if (data.code != '500') {
+                        window.location = 'index.jsp';
+                    }
+                }
+            })
+        })
+    })
+
+</script>
 <body>
-    <form action="login" method="post">
-        用户名：<input type="text" name="userName"/> <br/>
-        密码：<input type="password" name="password"/> <br/>
-        <input type="submit" value="提交"/>
-    </form>
+<form action="login" id="myForm">
+    用户名：<input type="text" name="userName"/> <br/>
+    密码：<input type="password" name="password"/> <br/>
+    <input type="button" value="提交" id="mylogin"/>
+</form>
 </body>
 </html>
