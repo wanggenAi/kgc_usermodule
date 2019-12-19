@@ -13,10 +13,9 @@ import java.util.*;
 /**
  * 封装JDBC的增删改查功能
  *
- * @param <T>
  * @author Administrator
  */
-public class BaseDao<T> {
+public class BaseDao {
 
     /**
      * 封装增删改功能
@@ -50,7 +49,7 @@ public class BaseDao<T> {
      * @param sql 需要执行的sql
      * @param cls 由此Class对象建模的类的类型
      */
-    protected T selectOne(String sql, Class<T> cls, Object... args) {
+    protected <T> T selectOne(String sql, Class<T> cls, Object... args) {
         List<T> list = this.selectMany(sql, cls, args);
         return list.isEmpty() ? null : list.get(0);
     }
@@ -110,7 +109,7 @@ public class BaseDao<T> {
     /**
      * 查询所有记录
      */
-    protected List<T> selectMany(String sql, Class<T> cls, Object... args) {
+    protected <T> List<T> selectMany(String sql, Class<T> cls, Object... args) {
         Connection conn = null;
         PreparedStatement pst = null;
         ResultSet rs = null;
@@ -130,7 +129,7 @@ public class BaseDao<T> {
                 for (int i = 1; i <= metaData.getColumnCount(); i++) {
                     String columnar = metaData.getColumnLabel(i); // 获取字段名称，一定要和实体类的属性名对应好，实体类中的属性名应当全部小写
                     String name = "set" + StringUtil.toUpper(columnar);
-                    Field field = cls.getDeclaredField(columnar);
+                    Field field = cls.getDeclaredField(columnar.toLowerCase());
                     Method method = cls.getMethod(name, field.getType());
                     // 先获取改行此列的值
                     Object realParam = rs.getObject(columnar);

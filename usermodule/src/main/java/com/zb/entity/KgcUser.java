@@ -1,29 +1,42 @@
 package com.zb.entity;
 
 public class KgcUser {
-    private Long id;
+    private long id;
     private String username;
     private String password;
     private String invite_code;
-    private Long tgr_id;
+    private long tgr_id;
     private String nickname;
     private String email;
     private String phone;
     private String realname;
-    private boolean sex;
+    private int sex;
     private Long birthday;
+    private int usertype;
     private String school;
     private String professional;
-    private short address_city;
+    private int address_city;
     private String head_url;
-    private Long createtime;
-    private Long updatetime;
+    private long createtime;
+    private long updatetime;
+    private String signname;
 
-    public Long getId() {
+    public String getSignname() {
+        return signname;
+    }
+
+    public void setSignname(String signname) {
+        this.signname = signname;
+    }
+
+    public KgcUser() {
+    }
+
+    public long getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(long id) {
         this.id = id;
     }
 
@@ -51,11 +64,11 @@ public class KgcUser {
         this.invite_code = invite_code;
     }
 
-    public Long getTgr_id() {
+    public long getTgr_id() {
         return tgr_id;
     }
 
-    public void setTgr_id(Long tgr_id) {
+    public void setTgr_id(long tgr_id) {
         this.tgr_id = tgr_id;
     }
 
@@ -91,11 +104,11 @@ public class KgcUser {
         this.realname = realname;
     }
 
-    public boolean isSex() {
+    public int isSex() {
         return sex;
     }
 
-    public void setSex(boolean sex) {
+    public void setSex(int sex) {
         this.sex = sex;
     }
 
@@ -105,6 +118,14 @@ public class KgcUser {
 
     public void setBirthday(Long birthday) {
         this.birthday = birthday;
+    }
+
+    public int getUsertype() {
+        return usertype;
+    }
+
+    public void setUsertype(int usertype) {
+        this.usertype = usertype;
     }
 
     public String getSchool() {
@@ -123,11 +144,11 @@ public class KgcUser {
         this.professional = professional;
     }
 
-    public short getAddress_city() {
+    public int getAddress_city() {
         return address_city;
     }
 
-    public void setAddress_city(short address_city) {
+    public void setAddress_city(int address_city) {
         this.address_city = address_city;
     }
 
@@ -139,19 +160,19 @@ public class KgcUser {
         this.head_url = head_url;
     }
 
-    public Long getCreatetime() {
+    public long getCreatetime() {
         return createtime;
     }
 
-    public void setCreatetime(Long createtime) {
+    public void setCreatetime(long createtime) {
         this.createtime = createtime;
     }
 
-    public Long getUpdatetime() {
+    public long getUpdatetime() {
         return updatetime;
     }
 
-    public void setUpdatetime(Long updatetime) {
+    public void setUpdatetime(long updatetime) {
         this.updatetime = updatetime;
     }
 }

@@ -18,7 +18,7 @@ public class JDBCTest {
         Connection conn = JDBCUtil.getConn();
         ResultSet rs = null;
         PreparedStatement pst = null;
-        BaseDao<Object> baseDao = new BaseDao<>();
+        BaseDao baseDao = new BaseDao();
         PageInfo pageInfo = new PageInfo();
         pageInfo.setCurrentPage(2);
         String sql = "select * from levelrule order by id desc";

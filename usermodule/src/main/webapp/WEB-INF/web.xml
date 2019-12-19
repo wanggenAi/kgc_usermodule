@@ -13,8 +13,9 @@
     </filter>
     <filter-mapping>
         <filter-name>tokenFilter</filter-name>
-        <url-pattern>/testToken.jsp</url-pattern>
+        <url-pattern>*.do</url-pattern>
     </filter-mapping>
+
     <filter-mapping>
         <filter-name>charFilter</filter-name>
         <url-pattern>/*</url-pattern>

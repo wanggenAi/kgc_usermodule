@@ -58,28 +58,28 @@ public class JedisUtils {
 
     }
 
-    //添加
+    // 添加
     public static void set(String key, String value){
         Jedis jedis = getJedis();
         jedis.set(key, value);
         close(jedis);;
     }
 
-    //设置超时时间
+    // 设置超时时间
     public static void expire(String key,int second) {
         Jedis jedis = getJedis();
         jedis.expire(key, second);
         close(jedis);
     }
 
-    //添加，带超时时间
+    // 添加，带超时时间
     public static void setex(String key, int seconds, String value){
         Jedis jedis = getJedis();
         jedis.setex(key, seconds, value);
         close(jedis);;
     }
 
-    //获取
+    // 获取
     public static String get(String key){
         Jedis jedis = getJedis();
         String value = jedis.get(key);
@@ -87,7 +87,7 @@ public class JedisUtils {
         return value;
     }
 
-    //查看某个键是否存在
+    // 查看某个键是否存在
     public static boolean exists(String key){
         Jedis jedis = getJedis();
         Boolean exists = jedis.exists(key);
@@ -95,7 +95,7 @@ public class JedisUtils {
         return exists;
     }
 
-    //查看超时时间
+    // 查看超时时间
     public static Long ttl(String key){
         Jedis jedis = getJedis();
         Long ttl = jedis.ttl(key);
@@ -103,10 +103,18 @@ public class JedisUtils {
         return ttl;
     }
 
-    //删除
+    // 删除
     public static void del(String key){
         Jedis jedis = getJedis();
         jedis.del(key);
         close(jedis);
+    }
+
+    // 给键自增1
+    public static long incr(String key) {
+        Jedis jedis = getJedis();
+        long count = jedis.incr(key);
+        close(jedis);
+        return count;
     }
 }

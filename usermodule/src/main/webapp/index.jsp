@@ -3,6 +3,6 @@
 <%@ page isELIgnored="false"%>
 <html>
 <body>
-<h2>${header["User-Token"]}</h2>
+<h2>欢迎页面</h2>
 </body>
 </html>
