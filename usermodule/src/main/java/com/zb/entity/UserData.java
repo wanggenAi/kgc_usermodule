@@ -8,6 +8,24 @@ public class UserData {
     private int invitation_count;
     private int kb_count;
     private double money;
+    private int level_id;
+    private int cur_score;
+
+    public int getLevel_id() {
+        return level_id;
+    }
+
+    public void setLevel_id(int level_id) {
+        this.level_id = level_id;
+    }
+
+    public int getCur_score() {
+        return cur_score;
+    }
+
+    public void setCur_score(int cur_score) {
+        this.cur_score = cur_score;
+    }
 
     public long getId() {
         return id;

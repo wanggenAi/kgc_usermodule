@@ -40,7 +40,7 @@ public class CheckJwtTokenFilter implements Filter {
                     JedisUtils.expire(jwt, SecretConstant.EXPIRESSECOND);
                     chain.doFilter(req, resp);
                 } else {
-                    hresp.getWriter().write(JSON.toJSONString(ResultData.fail(Constant.TOKEN_ERROR, "token是错误的")));
+                    hresp.getWriter().write(JSON.toJSONString(ResultData.fail(Constant.TOKEN_ERROR, "token已失效，需要重新登录")));
                     return;
                 }
             } else {

@@ -1,7 +1,8 @@
-package com.zb.servlet.login.kgcuser;
+package com.zb.servlet.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.zb.entity.UserData;
 import com.zb.entity.respentity.ResultData;
 import com.zb.service.imp.UserDataServiceImp;
 import com.zb.service.imp.UserServiceImp;
@@ -19,8 +20,10 @@ import java.lang.reflect.Method;
 
 @WebServlet("*.calc")
 public class ServletUserData extends HttpServlet {
+
     private UserDataService userDataService = new UserDataServiceImp();
     private UserService userService = new UserServiceImp();
+
     @Override
     protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String url = req.getRequestURI(); // 获取uri路径
@@ -34,7 +37,13 @@ public class ServletUserData extends HttpServlet {
         }
     }
 
-    // 修改用户关注人数
+    /**
+     * 修改用户关注人数
+     * @param req
+     * @param resp
+     * @throws ServletException
+     * @throws IOException
+     */
     private void chgFollowCount(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         if (userDataService.chgFollowC(req)) {
             resp.getWriter().write(JSON.toJSONString(ResultData.success(null, "修改关注数成功")));
@@ -43,7 +52,13 @@ public class ServletUserData extends HttpServlet {
         }
     }
 
-    // 修改用户粉丝数量
+    /**
+     * 修改用户粉丝数量
+     * @param req
+     * @param resp
+     * @throws ServletException
+     * @throws IOException
+     */
     private void chgFansCount(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         if (userDataService.chgFansC(req)) {
             resp.getWriter().write(JSON.toJSONString(ResultData.success(null, "修改粉丝数成功")));
@@ -52,7 +67,13 @@ public class ServletUserData extends HttpServlet {
         }
     }
 
-    // 修改用户点赞数量
+    /**
+     * 修改用户点赞数量
+     * @param req
+     * @param resp
+     * @throws ServletException
+     * @throws IOException
+     */
     private void chgSupportCount(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         if (userDataService.chgSupportC(req)) {
             resp.getWriter().write(JSON.toJSONString(ResultData.success(null, "修改点赞数成功")));
@@ -61,7 +82,13 @@ public class ServletUserData extends HttpServlet {
         }
     }
 
-    // 修改用户帖子数量
+    /**
+     * 修改用户帖子数量
+     * @param req
+     * @param resp
+     * @throws ServletException
+     * @throws IOException
+     */
     private void chgInvitationCount(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         if (userDataService.chgInvitationC(req)) {
             resp.getWriter().write(JSON.toJSONString(ResultData.success(null, "修改帖子数成功")));
@@ -70,7 +97,13 @@ public class ServletUserData extends HttpServlet {
         }
     }
 
-    // 修改用户KB数量
+    /**
+     * 修改用户KB数量
+     * @param req
+     * @param resp
+     * @throws ServletException
+     * @throws IOException
+     */
     private void chgKbCount(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         if (userDataService.chgKbC(req)) {
             resp.getWriter().write(JSON.toJSONString(ResultData.success(null, "修改KB数量成功")));
@@ -79,7 +112,13 @@ public class ServletUserData extends HttpServlet {
         }
     }
 
-    // 修改用户余额
+    /**
+     * 用户修改余额
+     * @param req
+     * @param resp
+     * @throws ServletException
+     * @throws IOException
+     */
     private void chgMoneyCount(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         if (userDataService.chgMoneyC(req)) {
             resp.getWriter().write(JSON.toJSONString(ResultData.success(null, "修改用户余额成功")));
@@ -89,10 +128,32 @@ public class ServletUserData extends HttpServlet {
     }
 
     /**
-     * 用户登录方法
-     *
+     * 用户修改经验值
      * @param req
      * @param resp
+     * @throws ServletException
+     * @throws IOException
+     */
+    private void userAddScore(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        userDataService.userAddScore(req);
+        resp.getWriter().write(JSON.toJSONString(ResultData.success(null, "修改经验值成功")));
+    }
+
+    /**
+     * 返回用户基础数据
+     * @param req
+     * @param resp
+     * @throws ServletException
+     * @throws IOException
+     */
+    private void getUserData(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException{
+        UserData userData = userDataService.getUserData(req);
+        resp.getWriter().write(JSON.toJSONString(ResultData.success(userData)));
+    }
+
+    /**
+     * 用户登录方法
+     * 传递的参数: username password
      * @throws ServletException
      * @throws IOException
      */

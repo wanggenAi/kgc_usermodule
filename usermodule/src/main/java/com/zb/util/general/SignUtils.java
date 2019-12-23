@@ -71,7 +71,7 @@ public class SignUtils {
      * 获取某月的数据
      */
     public static List<String> getSignHistoryByMonth(String signHistory, int month) {
-//        checkOutOfMonth(month);
+        // checkOutOfMonth(month);
         // start 本月第一天是当年的第几天
         int year = LocalDate.now().getYear();
         LocalDate localDate = LocalDate.of(year, month, 1);

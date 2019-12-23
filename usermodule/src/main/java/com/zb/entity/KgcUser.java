@@ -20,6 +20,19 @@ public class KgcUser {
     private long createtime;
     private long updatetime;
     private String signname;
+    private District district;
+
+    public int getSex() {
+        return sex;
+    }
+
+    public District getDistrict() {
+        return district;
+    }
+
+    public void setDistrict(District district) {
+        this.district = district;
+    }
 
     public String getSignname() {
         return signname;

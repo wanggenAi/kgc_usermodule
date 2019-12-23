@@ -1,9 +1,11 @@
 package com.zb.service.imp;
 
 import com.zb.dao.imp.KgcUserDaoImp;
+import com.zb.dao.imp.TaskDaoImp;
+import com.zb.entity.District;
 import com.zb.entity.KgcUser;
+import com.zb.entity.TaskForUser;
 import com.zb.entity.TbSignIn;
-import com.zb.entity.respentity.ResultData;
 import com.zb.service.inter.UserService;
 import com.zb.util.database.redis.JedisUtils;
 import com.zb.util.general.Constant;
@@ -16,10 +18,13 @@ import com.zb.util.jwt.SecretConstant;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class UserServiceImp implements UserService {
     KgcUserDaoImp kud = new KgcUserDaoImp();
-
+    TaskDaoImp taskDaoImp = new TaskDaoImp();
     /**
      * 验证用户密码是否正确
      *
@@ -42,7 +47,6 @@ public class UserServiceImp implements UserService {
 
     /**
      * 将键值保存到redis数据库中
-     *
      * @param uid
      * @return
      */
@@ -53,16 +57,39 @@ public class UserServiceImp implements UserService {
     }
 
     /**
-     * 返回客户端用户实体
+     * 返回客户端用户实体相关的数据
      */
-    public KgcUser getUserById(HttpServletRequest req, HttpServletResponse resp) {
+    public Map<String, Object> getUserById(HttpServletRequest req, HttpServletResponse resp) {
+        Map<String, Object> map = new HashMap<>();
         long uid = Long.parseLong(req.getParameter("uid"));
-        return kud.getUserById(uid);
+        // 获得用户实体信息
+        KgcUser kgcUser = kud.getUserById(uid);
+        // 根据用户的地区信息返回省份和市区信息
+        int address_city = kgcUser.getAddress_city();
+        // 判断用户是否填过地区信息
+        if (!(address_city == 0)) {
+            // 查找用户的地区信息
+            kgcUser.setDistrict(kud.getDistrictByCity(address_city));
+        }
+        // 获取所有的省份集合
+        List<District> districts = kud.getAllProvince();
+        map.put("kgcUser", kgcUser);
+        map.put("districts", districts);
+        return map;
+    }
+
+    /**
+     * 根据省份的id返回对应的市信息
+     * @param req
+     * @return
+     */
+    public List<District> getCityByProv(HttpServletRequest req) {
+        Short provId = Short.parseShort(req.getParameter("provId"));
+        return kud.getCityByProvince(provId);
     }
 
     /**
      * 获取用户签到数据
-     *
      * @param req
      * @return
      */
@@ -76,7 +103,6 @@ public class UserServiceImp implements UserService {
         // 获取当前月签到的日期列表
         ts.setSignList(SignUtils.getSignHistoryByMonth(ts.getSign_history(), LocalDate.now().getMonthValue()));
         return ts;
-
     }
 
     /**
@@ -140,5 +166,34 @@ public class UserServiceImp implements UserService {
         } else {
             JedisUtils.incr(key);
         }
+    }
+
+    @Override
+    public List<TaskForUser> getTaskList(HttpServletRequest req) {
+        long uid = Long.parseLong(req.getParameter("uid"));
+        return taskDaoImp.getTaskList(uid);
+    }
+
+    @Override
+    public boolean updateTaskStatus(HttpServletRequest req) {
+        long uid = Long.parseLong(req.getParameter("uid"));
+        short taskId = Short.parseShort(req.getParameter("taskId"));
+        short taskStatus = Short.parseShort(req.getParameter("taskStatus"));
+        return taskDaoImp.updateTaskStatus(uid, taskId, taskStatus);
+    }
+
+    @Override
+    public boolean initTaskForUser(HttpServletRequest req) {
+        long uid = Long.parseLong(req.getParameter("uid"));
+        return taskDaoImp.initTaskForUser(uid);
+    }
+
+    /**
+     * 上传图片到服务器
+     * @param req
+     * @return
+     */
+    public boolean uploadFile(HttpServletRequest req) {
+        return false;
     }
 }

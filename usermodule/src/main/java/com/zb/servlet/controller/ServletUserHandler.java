@@ -1,14 +1,12 @@
-package com.zb.servlet.login;
+package com.zb.servlet.controller;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
+import com.zb.entity.District;
 import com.zb.entity.KgcUser;
 import com.zb.entity.TbSignIn;
 import com.zb.entity.respentity.ResultData;
 import com.zb.service.imp.UserServiceImp;
 import com.zb.service.inter.UserService;
-import com.zb.util.database.JDBCUtil;
-import com.zb.util.general.Constant;
 import com.zb.util.general.EmptyUtils;
 
 import javax.servlet.ServletException;
@@ -17,12 +15,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.util.List;
+import java.util.Map;
 
 @WebServlet(urlPatterns = "*.do")
 public class ServletUserHandler extends HttpServlet {
@@ -42,10 +37,29 @@ public class ServletUserHandler extends HttpServlet {
         }
     }
 
-    // 获取用户实体(需要有uid参数)
+    /**
+     * 获取用户相关的实体数据
+     * @param req
+     * @param resp
+     * 传递 uid 参数
+     * @throws ServletException
+     * @throws IOException
+     */
     private void getUser(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        KgcUser kgcUser = userService.getUserById(req, resp);
-        resp.getWriter().write(JSON.toJSONString(ResultData.success(kgcUser)));
+        Map<String, Object> map = userService.getUserById(req, resp);
+        resp.getWriter().write(JSON.toJSONString(ResultData.success(map)));
+    }
+
+    /**
+     * 根据 provId 获取城市集合
+     * @param req
+     * @param resp
+     * @throws ServletException
+     * @throws IOException
+     */
+    private void getCityByProv(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        List<District> districts = userService.getCityByProv(req);
+        resp.getWriter().write(JSON.toJSONString(ResultData.success(districts)));
     }
 
     /**
@@ -87,5 +101,51 @@ public class ServletUserHandler extends HttpServlet {
     private void getTotalSign(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         long signCount = userService.getTotalSignCount();
         resp.getWriter().write(JSON.toJSONString(ResultData.success(signCount)));
+    }
+
+    /**
+     * 获取用户的任务列表
+     * @param req
+     * @param resp
+     * 传递参数： uid
+     * @throws ServletException
+     * @throws IOException
+     */
+    private void getTaskList(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        List list = userService.getTaskList(req);
+        if (EmptyUtils.isNotEmpty(list)) {
+            resp.getWriter().write(JSON.toJSONString(ResultData.success(list)));
+            return;
+        }
+        resp.getWriter().write(JSON.toJSONString(ResultData.fail("获取任务列表失败")));
+    }
+
+    /**
+     * 修改用户做的任务的状态
+     * @param req
+     * @param resp
+     * 传递参数: uid taskId taskStatus
+     * @throws ServletException
+     * @throws IOException
+     */
+    private void updateTaskStatus(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        if (userService.updateTaskStatus(req)) {
+            resp.getWriter().write(JSON.toJSONString(ResultData.success(null, "修改成功")));
+            return;
+        }
+        resp.getWriter().write(JSON.toJSONString(ResultData.fail("修改失败")));
+    }
+
+    /**
+     * 用户初始化任务列表
+     * @param req
+     * @param resp
+     * 传递参数 uid
+     * @throws ServletException
+     * @throws IOException
+     */
+    private void initTaskList(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        userService.initTaskForUser(req);
+        resp.getWriter().write(JSON.toJSONString(ResultData.success(null)));
     }
 }

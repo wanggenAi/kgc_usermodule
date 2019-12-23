@@ -107,7 +107,7 @@ public class BaseDao {
     }
 
     /**
-     * 查询所有记录
+     * 查询多行记录
      */
     protected <T> List<T> selectMany(String sql, Class<T> cls, Object... args) {
         Connection conn = null;
@@ -225,6 +225,12 @@ public class BaseDao {
         return count;
     }
 
+    /**
+     * 分页查询
+     * @param pageInfo
+     * @param sql
+     * @param args
+     */
     protected void pagedQuery(PageInfo pageInfo, String sql, Object... args) {
         String resultSql = sql + " limit " + pageInfo.getStartNum() + "," + pageInfo.getPageSize();
         Connection conn = null;
@@ -251,5 +257,7 @@ public class BaseDao {
             JDBCUtil.close(rs, pst, conn);
         }
     }
+
+
 }
 

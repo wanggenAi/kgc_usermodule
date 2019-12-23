@@ -15,7 +15,6 @@
         <filter-name>tokenFilter</filter-name>
         <url-pattern>*.do</url-pattern>
     </filter-mapping>
-
     <filter-mapping>
         <filter-name>charFilter</filter-name>
         <url-pattern>/*</url-pattern>

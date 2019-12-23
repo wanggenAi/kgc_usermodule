@@ -1,6 +1,7 @@
 package com.zb.service.imp;
 
 import com.zb.dao.imp.UserDataDaoImp;
+import com.zb.entity.UserData;
 import com.zb.service.inter.UserDataService;
 
 import javax.servlet.http.HttpServletRequest;
@@ -51,5 +52,48 @@ public class UserDataServiceImp implements UserDataService {
         long id = Long.parseLong(req.getParameter("uid"));
         short num = Short.parseShort(req.getParameter("num"));
         return userDataDaoImp.updateMoney(id, num);
+    }
+
+    /**
+     * 给用户升级
+     *
+     * @param req
+     * @return
+     */
+    private boolean updateUserLevel(HttpServletRequest req) {
+        long id = Long.parseLong(req.getParameter("uid"));
+        UserData userData = userDataDaoImp.getUserData(id);
+        // 判断用户当前的经验值是否超过了当前等级的最大值
+        int maxVal = userDataDaoImp.getMaxVal2Level(userData.getLevel_id());
+        if (userData.getCur_score() > maxVal) {
+            userDataDaoImp.updateUserLevel(id);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 给用户增加积分
+     *
+     * @param req
+     * @return
+     */
+    public void userAddScore(HttpServletRequest req) {
+        long id = Long.parseLong(req.getParameter("uid"));
+        short num = Short.parseShort(req.getParameter("num"));
+        // 给用户增加经验值
+        userDataDaoImp.updateUserScore(id, num);
+        updateUserLevel(req);
+    }
+
+    /**
+     * 返回用户基本数据
+     *
+     * @param req
+     * @return
+     */
+    public UserData getUserData(HttpServletRequest req) {
+        long id = Long.parseLong(req.getParameter("uid"));
+        return userDataDaoImp.getUserData(id);
     }
 }
