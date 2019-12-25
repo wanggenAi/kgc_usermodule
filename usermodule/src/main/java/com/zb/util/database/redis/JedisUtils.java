@@ -36,6 +36,7 @@ public class JedisUtils {
 
     /**
      * 从连接池获取一个Jedis实例
+     *
      * @return
      */
     public static Jedis getJedis() {
@@ -54,33 +55,45 @@ public class JedisUtils {
         }
     }
 
-    public static void main(String[] args) {
-
+    /**
+     * 如果已经存在，则添加失败
+     *
+     * @param key
+     * @param value
+     */
+    public static void setnx(String key, String value, int second) {
+        Jedis jedis = getJedis();
+        if (jedis.setnx(key, value) > 0) {
+            expire(key, second);
+        }
+        close(jedis);
     }
 
     // 添加
-    public static void set(String key, String value){
+    public static void set(String key, String value) {
         Jedis jedis = getJedis();
         jedis.set(key, value);
-        close(jedis);;
+        close(jedis);
+        ;
     }
 
     // 设置超时时间
-    public static void expire(String key,int second) {
+    public static void expire(String key, int second) {
         Jedis jedis = getJedis();
         jedis.expire(key, second);
         close(jedis);
     }
 
     // 添加，带超时时间
-    public static void setex(String key, int seconds, String value){
+    public static void setex(String key, int seconds, String value) {
         Jedis jedis = getJedis();
         jedis.setex(key, seconds, value);
-        close(jedis);;
+        close(jedis);
+        ;
     }
 
     // 获取
-    public static String get(String key){
+    public static String get(String key) {
         Jedis jedis = getJedis();
         String value = jedis.get(key);
         close(jedis);
@@ -88,7 +101,7 @@ public class JedisUtils {
     }
 
     // 查看某个键是否存在
-    public static boolean exists(String key){
+    public static boolean exists(String key) {
         Jedis jedis = getJedis();
         Boolean exists = jedis.exists(key);
         close(jedis);
@@ -96,7 +109,7 @@ public class JedisUtils {
     }
 
     // 查看超时时间
-    public static Long ttl(String key){
+    public static Long ttl(String key) {
         Jedis jedis = getJedis();
         Long ttl = jedis.ttl(key);
         close(jedis);
@@ -104,7 +117,7 @@ public class JedisUtils {
     }
 
     // 删除
-    public static void del(String key){
+    public static void del(String key) {
         Jedis jedis = getJedis();
         jedis.del(key);
         close(jedis);

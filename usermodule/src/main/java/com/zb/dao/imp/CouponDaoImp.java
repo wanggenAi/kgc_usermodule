@@ -75,18 +75,6 @@ public class CouponDaoImp extends BaseDao {
     }
 
     /**
-     * 用户初始化优惠券
-     * @param uid
-     * @return
-     */
-    public boolean initUserForCoupon(long uid) {
-        String sql = "insert into userforcoupon(cid,uid) " +
-                "select c.id cid,k.id uid from kgc_user k " +
-                "inner join coupon c on c.isnew = 1 and k.id = ?";
-        return executeUpdate(sql) > 0 ? true : false;
-    }
-
-    /**
      * 插入优惠券主表
      * @param title_name
      * @param save_money

@@ -201,7 +201,7 @@ public class ServletUserHandler extends HttpServlet {
      * 注册用户
      * @param req
      * @param resp
-     *
+     * userName 用户名 password 用户密码 verifyCode 验证码
      * @throws ServletException
      * @throws IOException
      */

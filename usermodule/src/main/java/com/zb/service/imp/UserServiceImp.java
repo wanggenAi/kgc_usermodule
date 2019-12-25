@@ -30,7 +30,6 @@ public class UserServiceImp implements UserService {
     KgcUserDaoImp kud = new KgcUserDaoImp();
     TaskDaoImp taskDao = new TaskDaoImp();
     UserDataDaoImp userDataDao = new UserDataDaoImp();
-    CouponDaoImp couponDao = new CouponDaoImp();
     SmsService smsService = new SmsServiceImp();
     /**
      * 验证用户密码是否正确
@@ -228,16 +227,19 @@ public class UserServiceImp implements UserService {
      * @date 2019-12-24 10:31:16
      */
     private boolean initUserData(long uid) {
-        boolean isOk = true;
         // 初始化用户任务列表
-        isOk = taskDao.initTaskForUser(uid);
+        if (!taskDao.initTaskForUser(uid)) {
+            return false;
+        }
         // 初始化用户数据信息
-        isOk = userDataDao.insertUData(uid);
-        // 初始化用户的优惠券
-        isOk = couponDao.initUserForCoupon(uid);
+        if (!userDataDao.insertUData(uid)) {
+            return false;
+        }
         // 初始化用户签到表
-        isOk = kud.initUserSign(uid, SignUtils.defaultSignHistory());
-        return isOk;
+        if (!kud.initUserSign(uid, SignUtils.defaultSignHistory())) {
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -293,7 +295,7 @@ public class UserServiceImp implements UserService {
      */
     private boolean verifyCodeReg(String userName,String verifyCode) {
         String jv = JedisUtils.get(userName);
-        return userName.equals(verifyCode);
+        return verifyCode.equals(jv);
     }
 
     /**
@@ -304,7 +306,7 @@ public class UserServiceImp implements UserService {
      */
     private boolean rexUserInput(KgcUser kgcUser,Map<String, Object> map) {
         if (RegexValidateUtil.isPhone(kgcUser.getUsername())) {
-            if (!RegexValidateUtil.checkTelephone(kgcUser.getUsername())) {
+            if (!RegexValidateUtil.checkCellphone(kgcUser.getUsername())) {
                 map.put("username", "手机号不正确");
                 return false;
             }
@@ -340,6 +342,11 @@ public class UserServiceImp implements UserService {
             map.put("verifyCode", "验证码输入不正确或已失效，过"+Constant.VERIFY_CODE_EXPIRE+"秒后可重新获取");
             return false;
         }
+        // 校验用户名是否已经存在
+        if (kud.isExistUser(kgcUser.getUsername())) {
+            map.put("userName", "用户名已存在");
+            return false;
+        }
         long uid = 0;
         try {
             // 生成用户的唯一uid编号
@@ -356,6 +363,7 @@ public class UserServiceImp implements UserService {
         return addKgcUserToDb(kgcUser);
     }
 
+
     /**
      * 给用户发送手机或是邮件验证码
      * userName 用户名
@@ -363,9 +371,23 @@ public class UserServiceImp implements UserService {
      */
     public boolean sendVerifyCodeByEmailOrCell(HttpServletRequest req) {
         String userName = req.getParameter("userName");
+        // 用户名为空
+        if (EmptyUtils.isEmpty(userName)) {
+            return false;
+        }
+        // 校验该用户是否已经发送过了验证码且还没有到期
+        if (EmptyUtils.isNotEmpty(JedisUtils.get(userName))) {
+            return false;
+        }
         if (RegexValidateUtil.isPhone(userName)) {
             return smsService.sendPhoneCode(userName);
         }
         return smsService.sendEmailCode(userName);
     }
+
+    public static void main(String[] args) {
+
+    }
 }
+
+
