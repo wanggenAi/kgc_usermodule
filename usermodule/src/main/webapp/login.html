@@ -11,7 +11,7 @@
         $("#mylogin").click(function () {
             $.ajax({
                 type: "post", // 提交的方法
-                url: "login",
+                url: "login.calc",
                 data: $('#myForm').serialize(),
                 error: function (request) {
                     alert("connection error")
@@ -29,7 +29,7 @@
 
 </script>
 <body>
-<form action="login.do" id="myForm">
+<form action="login.calc" id="myForm">
     用户名：<input type="text" name="userName"/> <br/>
     密码：<input type="password" name="password"/> <br/>
     <input type="button" value="提交" id="mylogin"/>

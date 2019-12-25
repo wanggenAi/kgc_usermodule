@@ -5,8 +5,10 @@ import com.zb.entity.KgcUser;
 import com.zb.entity.TaskForUser;
 import com.zb.entity.TbSignIn;
 
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -45,5 +47,11 @@ public interface UserService {
      * @return
      */
     public boolean initTaskForUser(HttpServletRequest req);
+
+    public String getUserHeadImg(HttpServletRequest req);
+
+    public boolean uploadFile(HttpServletRequest req) throws IOException, ServletException;
+
+    public Map<String, Object> registerUser(HttpServletRequest req, Map<String, Object> map);
 
 }

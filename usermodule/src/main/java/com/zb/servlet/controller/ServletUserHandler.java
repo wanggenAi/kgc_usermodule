@@ -2,24 +2,26 @@ package com.zb.servlet.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.zb.entity.District;
-import com.zb.entity.KgcUser;
 import com.zb.entity.TbSignIn;
 import com.zb.entity.respentity.ResultData;
 import com.zb.service.imp.UserServiceImp;
 import com.zb.service.inter.UserService;
 import com.zb.util.general.EmptyUtils;
-
 import javax.servlet.ServletException;
+import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.Part;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 
+
 @WebServlet(urlPatterns = "*.do")
+@MultipartConfig
 public class ServletUserHandler extends HttpServlet {
 
     private UserService userService = new UserServiceImp();
@@ -148,4 +150,35 @@ public class ServletUserHandler extends HttpServlet {
         userService.initTaskForUser(req);
         resp.getWriter().write(JSON.toJSONString(ResultData.success(null)));
     }
+
+    /**
+     *
+     * uid 用户id
+     * headerImg 文件标签名称
+     * realPath 项目的web路径用来存放图片的目录
+     * @throws ServletException
+     * @throws IOException
+     */
+    private void uploadHeaderImg(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        Part part =req.getPart("headerImg");
+        if (userService.uploadFile(req)) {
+            resp.getWriter().write(JSON.toJSONString(ResultData.success(null)));
+            return;
+        }
+        resp.getWriter().write(JSON.toJSONString(ResultData.fail("上传失败")));
+    }
+
+    /**
+     * 获取用户的头像
+     * 传入 uid
+     * @throws ServletException
+     * @throws IOException
+     */
+    private void getUserHeadImg(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        String headUrl = userService.getUserHeadImg(req);
+        resp.getWriter().write(JSON.toJSONString(ResultData.success(headUrl)));
+    }
+
+
 }
+

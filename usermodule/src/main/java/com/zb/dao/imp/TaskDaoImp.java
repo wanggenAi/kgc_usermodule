@@ -39,7 +39,7 @@ public class TaskDaoImp extends BaseDao {
      * @return
      */
     public boolean initTaskForUser(long id) {
-        String sql = "insert into taskforuser select ?,t.id,0  from tasklist t";
+        String sql = "insert into taskforuser select ?,t.id,0 from tasklist t";
         return executeUpdate(sql, id) > 0 ? true : false;
     }
 

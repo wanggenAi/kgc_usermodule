@@ -2,21 +2,23 @@ package com.zb.service.imp;
 
 import com.zb.dao.imp.KgcUserDaoImp;
 import com.zb.dao.imp.TaskDaoImp;
+import com.zb.dao.imp.UserDataDaoImp;
 import com.zb.entity.District;
 import com.zb.entity.KgcUser;
 import com.zb.entity.TaskForUser;
 import com.zb.entity.TbSignIn;
 import com.zb.service.inter.UserService;
 import com.zb.util.database.redis.JedisUtils;
-import com.zb.util.general.Constant;
-import com.zb.util.general.EmptyUtils;
-import com.zb.util.general.SignUtils;
-import com.zb.util.general.StringUtil;
+import com.zb.util.ftpclient.FtpUtil;
+import com.zb.util.general.*;
 import com.zb.util.jwt.JwtHelper;
 import com.zb.util.jwt.SecretConstant;
 
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.Part;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
@@ -24,7 +26,8 @@ import java.util.Map;
 
 public class UserServiceImp implements UserService {
     KgcUserDaoImp kud = new KgcUserDaoImp();
-    TaskDaoImp taskDaoImp = new TaskDaoImp();
+    TaskDaoImp taskDao = new TaskDaoImp();
+    UserDataDaoImp userDataDao = new UserDataDaoImp();
     /**
      * 验证用户密码是否正确
      *
@@ -171,7 +174,7 @@ public class UserServiceImp implements UserService {
     @Override
     public List<TaskForUser> getTaskList(HttpServletRequest req) {
         long uid = Long.parseLong(req.getParameter("uid"));
-        return taskDaoImp.getTaskList(uid);
+        return taskDao.getTaskList(uid);
     }
 
     @Override
@@ -179,13 +182,13 @@ public class UserServiceImp implements UserService {
         long uid = Long.parseLong(req.getParameter("uid"));
         short taskId = Short.parseShort(req.getParameter("taskId"));
         short taskStatus = Short.parseShort(req.getParameter("taskStatus"));
-        return taskDaoImp.updateTaskStatus(uid, taskId, taskStatus);
+        return taskDao.updateTaskStatus(uid, taskId, taskStatus);
     }
 
     @Override
     public boolean initTaskForUser(HttpServletRequest req) {
         long uid = Long.parseLong(req.getParameter("uid"));
-        return taskDaoImp.initTaskForUser(uid);
+        return taskDao.initTaskForUser(uid);
     }
 
     /**
@@ -193,7 +196,128 @@ public class UserServiceImp implements UserService {
      * @param req
      * @return
      */
-    public boolean uploadFile(HttpServletRequest req) {
+    public boolean uploadFile(HttpServletRequest req) throws IOException, ServletException {
+        long uid = Long.parseLong(req.getParameter("uid"));
+        Part filePart = req.getPart("headerImg");
+        try {
+            String imgName = FtpUtil.uploadHeaderImg(filePart);
+            // 修改用户头像url,这里只保存一个文件名称，前面的地址要动态指定服务器地址
+            return kud.updateHeaderImg(imgName, uid);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return false;
+    }
+
+    /**
+     * 获取用户头像url，用来给ajax异步更新头像图片
+     * @param req
+     * @return
+     */
+    public String getUserHeadImg(HttpServletRequest req) {
+        long uid = Long.parseLong(req.getParameter("uid"));
+        return kud.getUserHeaderImg(uid);
+    }
+
+    /**
+     * 当用户注册成功后，初始化用户的一些数据表
+     * @date 2019-12-24 10:31:16
+     */
+    private boolean initUserData(long uid) {
+        boolean isOk = true;
+        // 初始化用户任务列表
+        isOk = taskDao.initTaskForUser(uid);
+        // 初始化用户数据信息
+        isOk = userDataDao.insertUData(uid);
+        // 初始化用户的优惠券
+
+        // 初始化用户签到表
+        
+        return isOk;
+    }
+
+    /**
+     * 用户注册
+     * @param req
+     * @return
+     */
+    public Map<String, Object> registerUser(HttpServletRequest req, Map<String, Object> map) {
+        KgcUser kgcUser = new KgcUser();
+        boolean isOk = true;
+        String userName = req.getParameter("userName");
+        String password = req.getParameter("password");
+        kgcUser.setUsername(userName);
+        kgcUser.setPassword(password);
+        // 用户输入错误，直接返回map，控制端判断isOK
+        if (!rexUserInput(kgcUser, map)) {
+            return map;
+        }
+        // 验证码 有可能是手机的或者是邮箱的
+        String verifyCode = req.getParameter("verifyCode");
+        // 校验验证码是否正确
+        if (!verifyCodeReg(userName, verifyCode)) {
+            map.put("verifyCode", "验证码输入不正确");
+            map.put("isOk",false);
+            return map;
+        }
+        // 使用Md5 16位方式加密密码
+        password = MD5.getMd5(password, Constant.PWD_MD5_LENGTH16);
+        kgcUser.setPassword(password);
+        long uid = 0;
+        try {
+            // 生成用户的唯一uid编号
+            uid = IdWorker.getFlowIdWorkerInstance().nextId();
+        } catch (Exception e) {
+            e.printStackTrace();
+            map.put("isOk", false);
+            map.put("uid", "用户uid创建失败");
+            return map;
+        }
+        kgcUser.setId(uid);
+        // 添加用户到后台数据库中,这里面还要做用户初始化的一些操作
+
+        // 标记前端是否合法，后太是否执行成功
+        map.put("isOk", isOk);
+        return map;
+    }
+
+    /**
+     * 向redis数据库查询用户对应的验证码是否输入的正确
+     * @param userName
+     * @param verifyCode
+     * @return
+     */
+    private boolean verifyCodeReg(String userName,String verifyCode) {
+
+        return true;
+    }
+
+    /**
+     * 验证用户输入的内容准确性
+     * @param kgcUser
+     * @param map
+     * @return
+     */
+    private boolean rexUserInput(KgcUser kgcUser,Map<String, Object> map) {
+        if (RegexValidateUtil.isPhone(kgcUser.getUsername())) {
+            if (!RegexValidateUtil.checkTelephone(kgcUser.getUsername())) {
+                map.put("username", "手机号不正确");
+                map.put("isOk", false);
+                return false;
+            }
+        } else {
+            if (!RegexValidateUtil.checkEmail(kgcUser.getUsername())) {
+                map.put("username", "邮箱格式不正确");
+                map.put("isOk", false);
+                return false;
+            }
+        }
+        // 判断密码是否为空，不作长度校验
+        if (EmptyUtils.isEmpty(kgcUser.getPassword())) {
+            map.put("password", "密码不能为空");
+            map.put("isOk", false);
+            return false;
+        }
+        return true;
     }
 }

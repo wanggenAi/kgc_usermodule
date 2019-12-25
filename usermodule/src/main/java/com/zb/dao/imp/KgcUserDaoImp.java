@@ -7,6 +7,7 @@ import com.zb.entity.TbSignIn;
 import com.zb.util.database.BaseDao;
 
 import java.util.List;
+import java.util.Map;
 
 
 public class KgcUserDaoImp extends BaseDao implements KgcUserDao {
@@ -68,6 +69,7 @@ public class KgcUserDaoImp extends BaseDao implements KgcUserDao {
 
     /**
      * 用户签到
+     *
      * @param signHistory
      * @param uid
      * @return
@@ -79,6 +81,7 @@ public class KgcUserDaoImp extends BaseDao implements KgcUserDao {
 
     /**
      * 根据城市id获取地区记录
+     *
      * @param cityId
      * @return
      */
@@ -89,6 +92,7 @@ public class KgcUserDaoImp extends BaseDao implements KgcUserDao {
 
     /**
      * 根据省份id获取子市区的信息
+     *
      * @param provId
      * @return
      */
@@ -99,11 +103,61 @@ public class KgcUserDaoImp extends BaseDao implements KgcUserDao {
 
     /**
      * 获取所有的省份的记录信息
+     *
      * @return
      */
     public List<District> getAllProvince() {
         String sql = "select * from district where type = 1";
         return selectMany(sql, District.class);
+    }
+
+    /**
+     * 修改用户的头像url
+     *
+     * @param url
+     * @param uid
+     * @return
+     */
+    public boolean updateHeaderImg(String url, long uid) {
+        String sql = "update kgc_user set head_url = ? where id = ?";
+        return executeUpdate(sql, url, uid) > 0 ? true : false;
+    }
+
+    /**
+     * 查询用户头像信息
+     *
+     * @return
+     */
+    public String getUserHeaderImg(long uid) {
+        String sql = "select head_url from kgc_user where id = ?";
+        List<Map<String, Object>> list = selectMany(sql, uid);
+        return (String) (list.get(0).get("head_url"));
+    }
+
+    /**
+     * 添加用户到用户表中
+     *
+     * @param kgcUser
+     * @return
+     */
+    public boolean addKgcUser(KgcUser kgcUser) {
+        String sql = "insert into kgc_user(id, username, password, usertype, email, phone, head_url, createtime," +
+                " updatetime) values(?,?,?,?,?,?,?,?,?)";
+        return executeUpdate(sql, kgcUser.getId(), kgcUser.getUsername(), kgcUser.getPassword(),
+                kgcUser.getUsertype(), kgcUser.getEmail(), kgcUser.getPhone(), kgcUser.getHead_url(),
+                kgcUser.getCreatetime(), kgcUser.getUpdatetime()) > 0 ? true : false;
+    }
+
+    /**
+     * 初始化一条用户的签到的签到信息
+     *
+     * @param uid
+     * @param sign_history
+     * @return
+     */
+    public boolean initUserSign(long uid, String sign_history) {
+        String sql = "insert into tb_signin(uid, sign_history) values(?,?)";
+        return executeUpdate(sql, uid, sign_history) > 0 ? true : false;
     }
 
     public static void main(String[] args) {

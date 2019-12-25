@@ -1,3 +1,5 @@
+package com.zb.servlet.listener;
+
 import com.zb.quartz.job.AddCoupon2RandMJob;
 import com.zb.quartz.job.InsertCouponJob;
 import com.zb.quartz.job.QuartzObj;
@@ -13,7 +15,7 @@ import javax.servlet.http.HttpSessionListener;
 import javax.servlet.http.HttpSessionBindingEvent;
 import java.util.ResourceBundle;
 
-@WebListener()
+//@WebListener()
 public class ListenerQuartz implements ServletContextListener,
         HttpSessionListener, HttpSessionAttributeListener {
 

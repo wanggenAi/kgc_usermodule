@@ -26,6 +26,17 @@
     </properties>
 
     <dependencies>
+        <!--云通信短信发送依赖包，自己导入的-->
+        <dependency>
+            <groupId>cn.itrip.ccptestsms</groupId>
+            <artifactId>itrip-ccptestsms</artifactId>
+            <version>1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-net</groupId>
+            <artifactId>commons-net</artifactId>
+            <version>3.6</version>
+        </dependency>
         <!--jwt依赖包-->
         <dependency>
             <groupId>com.auth0</groupId>
