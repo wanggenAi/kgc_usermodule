@@ -1,6 +1,7 @@
 package com.zb.servlet.controller;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.zb.entity.District;
 import com.zb.entity.TbSignIn;
 import com.zb.entity.respentity.ResultData;
@@ -16,6 +17,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -179,6 +181,37 @@ public class ServletUserHandler extends HttpServlet {
         resp.getWriter().write(JSON.toJSONString(ResultData.success(headUrl)));
     }
 
+    /**
+     * 给用户发送验证码，手机或邮箱
+     * @param req
+     * @param resp
+     * userName 用户名
+     * @throws ServletException
+     * @throws IOException
+     */
+    private void sendVerifyCode(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        if (userService.sendVerifyCodeByEmailOrCell(req)) {
+            resp.getWriter().write(JSON.toJSONString(ResultData.success("验证码发送成功")));
+            return;
+        }
+        resp.getWriter().write(JSON.toJSONString(ResultData.fail("验证码发送失败")));
+    }
 
+    /**
+     * 注册用户
+     * @param req
+     * @param resp
+     *
+     * @throws ServletException
+     * @throws IOException
+     */
+    private void registUser(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        Map<String, Object> map = new HashMap<>();
+        if (userService.registerUser(req, map)) {
+            resp.getWriter().write(JSONObject.toJSONString(ResultData.success(null)));
+            return;
+        }
+        resp.getWriter().write(JSONObject.toJSONString(ResultData.fail(map)));
+    }
 }
 

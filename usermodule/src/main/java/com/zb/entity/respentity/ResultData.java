@@ -47,6 +47,10 @@ public class ResultData {
         return resultData(ResponseCode.ERROR.getVal(), msg, null);
     }
 
+    public static ResultData fail(Object data) {
+        return resultData(ResponseCode.ERROR.getVal(), ResponseCode.ERROR.getMsg(), data);
+    }
+
     public static ResultData fail(String code, String msg, Object data) {
         return resultData(code, msg, data);
     }

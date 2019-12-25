@@ -1,5 +1,6 @@
 package com.zb.service.imp;
 
+import com.zb.dao.imp.CouponDaoImp;
 import com.zb.dao.imp.KgcUserDaoImp;
 import com.zb.dao.imp.TaskDaoImp;
 import com.zb.dao.imp.UserDataDaoImp;
@@ -7,6 +8,7 @@ import com.zb.entity.District;
 import com.zb.entity.KgcUser;
 import com.zb.entity.TaskForUser;
 import com.zb.entity.TbSignIn;
+import com.zb.service.inter.SmsService;
 import com.zb.service.inter.UserService;
 import com.zb.util.database.redis.JedisUtils;
 import com.zb.util.ftpclient.FtpUtil;
@@ -28,6 +30,8 @@ public class UserServiceImp implements UserService {
     KgcUserDaoImp kud = new KgcUserDaoImp();
     TaskDaoImp taskDao = new TaskDaoImp();
     UserDataDaoImp userDataDao = new UserDataDaoImp();
+    CouponDaoImp couponDao = new CouponDaoImp();
+    SmsService smsService = new SmsServiceImp();
     /**
      * 验证用户密码是否正确
      *
@@ -230,55 +234,55 @@ public class UserServiceImp implements UserService {
         // 初始化用户数据信息
         isOk = userDataDao.insertUData(uid);
         // 初始化用户的优惠券
-
+        isOk = couponDao.initUserForCoupon(uid);
         // 初始化用户签到表
-        
+        isOk = kud.initUserSign(uid, SignUtils.defaultSignHistory());
         return isOk;
+    }
+
+    /**
+     * 将kgc用户添加到后台数据库中
+     * @param kgcUser
+     * @return
+     */
+    private boolean addKgcUserToDb(KgcUser kgcUser) {
+        // 初始化属性 id, username, password, usertype, email, phone, head_url, createtime, updatetime
+        // 初始化用户类型1学生2老师
+        kgcUser.setUsertype(1);
+        // 给用户手机或邮箱字段赋值
+        if (RegexValidateUtil.isPhone(kgcUser.getUsername())) {
+            kgcUser.setPhone(kgcUser.getUsername());
+        } else {
+            kgcUser.setEmail(kgcUser.getUsername());
+        }
+        // 设置用户的初始化默认头像
+        kgcUser.setHead_url(Constant.USER_DEFAULT_HEADER);
+        kgcUser.setCreatetime(System.currentTimeMillis());
+        kgcUser.setUpdatetime(System.currentTimeMillis());
+        if (kud.addKgcUser(kgcUser)) {
+            if (initUserData(kgcUser.getId())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
      * 用户注册
      * @param req
-     * @return
+     * userName 用户名 password 用户密码 verifyCode 验证码
+     * @return map集合，程序执行的结果
+     * @date 2019-12-25 10:06:50
      */
-    public Map<String, Object> registerUser(HttpServletRequest req, Map<String, Object> map) {
+    public boolean registerUser(HttpServletRequest req, Map<String, Object> map) {
         KgcUser kgcUser = new KgcUser();
-        boolean isOk = true;
         String userName = req.getParameter("userName");
         String password = req.getParameter("password");
+        String verifyCode = req.getParameter("verifyCode");
         kgcUser.setUsername(userName);
         kgcUser.setPassword(password);
-        // 用户输入错误，直接返回map，控制端判断isOK
-        if (!rexUserInput(kgcUser, map)) {
-            return map;
-        }
-        // 验证码 有可能是手机的或者是邮箱的
-        String verifyCode = req.getParameter("verifyCode");
-        // 校验验证码是否正确
-        if (!verifyCodeReg(userName, verifyCode)) {
-            map.put("verifyCode", "验证码输入不正确");
-            map.put("isOk",false);
-            return map;
-        }
-        // 使用Md5 16位方式加密密码
-        password = MD5.getMd5(password, Constant.PWD_MD5_LENGTH16);
-        kgcUser.setPassword(password);
-        long uid = 0;
-        try {
-            // 生成用户的唯一uid编号
-            uid = IdWorker.getFlowIdWorkerInstance().nextId();
-        } catch (Exception e) {
-            e.printStackTrace();
-            map.put("isOk", false);
-            map.put("uid", "用户uid创建失败");
-            return map;
-        }
-        kgcUser.setId(uid);
-        // 添加用户到后台数据库中,这里面还要做用户初始化的一些操作
-
-        // 标记前端是否合法，后太是否执行成功
-        map.put("isOk", isOk);
-        return map;
+        // 验证注册步骤是否成功
+       return rexUserAll(kgcUser, map, verifyCode);
     }
 
     /**
@@ -288,8 +292,8 @@ public class UserServiceImp implements UserService {
      * @return
      */
     private boolean verifyCodeReg(String userName,String verifyCode) {
-
-        return true;
+        String jv = JedisUtils.get(userName);
+        return userName.equals(verifyCode);
     }
 
     /**
@@ -302,22 +306,66 @@ public class UserServiceImp implements UserService {
         if (RegexValidateUtil.isPhone(kgcUser.getUsername())) {
             if (!RegexValidateUtil.checkTelephone(kgcUser.getUsername())) {
                 map.put("username", "手机号不正确");
-                map.put("isOk", false);
                 return false;
             }
         } else {
             if (!RegexValidateUtil.checkEmail(kgcUser.getUsername())) {
                 map.put("username", "邮箱格式不正确");
-                map.put("isOk", false);
                 return false;
             }
         }
         // 判断密码是否为空，不作长度校验
         if (EmptyUtils.isEmpty(kgcUser.getPassword())) {
             map.put("password", "密码不能为空");
-            map.put("isOk", false);
             return false;
         }
         return true;
+    }
+
+    /**
+     * 验证用户注册时每一个流程的正确性，保证一个原子性操作
+     * 有一个地方出错则直接返回控制层false
+     * @param kgcUser
+     * @param map
+     * @param verifyCode
+     * @return
+     */
+    private boolean rexUserAll(KgcUser kgcUser, Map<String, Object> map, String verifyCode) {
+        // 用户输入错误返回false
+        if (!rexUserInput(kgcUser, map)) {
+            return false;
+        }
+        // 校验验证码是否正确
+        if (EmptyUtils.isEmpty(verifyCode) || (!verifyCodeReg(kgcUser.getUsername(), verifyCode))) {
+            map.put("verifyCode", "验证码输入不正确或已失效，过"+Constant.VERIFY_CODE_EXPIRE+"秒后可重新获取");
+            return false;
+        }
+        long uid = 0;
+        try {
+            // 生成用户的唯一uid编号
+            uid = IdWorker.getFlowIdWorkerInstance().nextId();
+        } catch (Exception e) {
+            e.printStackTrace();
+            map.put("uid", "用户uid创建失败");
+            return false;
+        }
+        kgcUser.setId(uid);
+        // 使用Md5 16位方式加密密码
+        String password = MD5.getMd5(kgcUser.getPassword(), Constant.PWD_MD5_LENGTH16);
+        kgcUser.setPassword(password);
+        return addKgcUserToDb(kgcUser);
+    }
+
+    /**
+     * 给用户发送手机或是邮件验证码
+     * userName 用户名
+     * @return
+     */
+    public boolean sendVerifyCodeByEmailOrCell(HttpServletRequest req) {
+        String userName = req.getParameter("userName");
+        if (RegexValidateUtil.isPhone(userName)) {
+            return smsService.sendPhoneCode(userName);
+        }
+        return smsService.sendEmailCode(userName);
     }
 }

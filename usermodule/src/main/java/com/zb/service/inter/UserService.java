@@ -52,6 +52,8 @@ public interface UserService {
 
     public boolean uploadFile(HttpServletRequest req) throws IOException, ServletException;
 
-    public Map<String, Object> registerUser(HttpServletRequest req, Map<String, Object> map);
+    public boolean registerUser(HttpServletRequest req, Map<String, Object> map);
+
+    public boolean sendVerifyCodeByEmailOrCell(HttpServletRequest req);
 
 }
