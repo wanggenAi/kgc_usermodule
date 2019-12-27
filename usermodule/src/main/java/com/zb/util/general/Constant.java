@@ -8,13 +8,12 @@ public class Constant {
     public final static String SIGN_TOTAL_PREFIX = "signCount"; // 当天签到总人数键的后缀
     public final static String COUPON_REDIS_PREFIX = "coupon_";
     public final static int COUPON_REDIS_INDEX = 1; // 优惠券所在的redis数据库编号
-    public final static String SERVER_IMAGE_URL = "http://192.168.208.3/images/";
     // 用户默认头像
     public final static String USER_DEFAULT_HEADER = "headerdefault.jpg";
     // 16位的MD5加密密码
     public final static int PWD_MD5_LENGTH16 = 16;
     /**
-     * 验证码过期时间，默认是60秒
+     * 验证码过期时间，默认是70秒
      */
-    public final static int VERIFY_CODE_EXPIRE = 3600;
+    public final static int VERIFY_CODE_EXPIRE = 70;
 }

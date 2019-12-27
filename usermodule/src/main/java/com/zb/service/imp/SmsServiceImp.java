@@ -4,6 +4,7 @@ import com.cloopen.rest.sdk.CCPRestSmsSDK;
 import com.zb.service.inter.SmsService;
 import com.zb.util.database.redis.JedisUtils;
 import com.zb.util.general.Constant;
+import com.zb.util.general.MailUtil;
 
 import java.util.HashMap;
 
@@ -39,7 +40,12 @@ public class SmsServiceImp implements SmsService {
      * @return
      */
     public boolean sendEmailCode(String userName) {
-
+        String rcode = randomCode()+"";
+        MailUtil mailUtil = new MailUtil(userName, rcode);
+        // 单独启动线程去发送邮件
+        new Thread(() -> mailUtil.run()).start();
+        // 将数据添加到redis中
+        JedisUtils.setnx(userName, rcode+"", Constant.VERIFY_CODE_EXPIRE);
         return true;
     }
 
