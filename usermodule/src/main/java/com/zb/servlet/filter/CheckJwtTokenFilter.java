@@ -27,6 +27,11 @@ public class CheckJwtTokenFilter implements Filter {
         req.setCharacterEncoding("utf-8");
         resp.setCharacterEncoding("utf-8");
         resp.setContentType("text/html;charset=UTF-8");
+        hresp.setHeader("Access-Control-Allow-Origin", "*");
+        hresp.setHeader("Access-Control-Allow-Methods", "*");
+        hresp.setHeader("Access-Control-Max-Age", "3600");
+        hresp.addHeader("Access-Control-Allow-Headers", "*");
+        hresp.setHeader("Access-Control-Allow-Credentials", "*");
         String jwt = hreq.getHeader("User-Token");
         // 判断jwt是否有效
         if (StringUtils.isNotBlank(jwt)) {
