@@ -41,6 +41,7 @@ public class UserServiceImp implements UserService {
     public long authUserLogin(HttpServletRequest req, HttpServletResponse resp) {
         String name = req.getParameter("userName");
         String pwd = req.getParameter("password");
+        pwd = MD5.getMd5(pwd, Constant.PWD_MD5_LENGTH16);
         long uid = kud.getUser(name, pwd);
         if (uid == Constant.NOT_FOUND_UID) { // 用户名或密码错误
             return uid;
@@ -57,7 +58,7 @@ public class UserServiceImp implements UserService {
      * @return
      */
     private String saveUid2Redis(long uid) {
-        String jsonKey = JwtHelper.generateJWT(String.valueOf(uid));
+        String jsonKey = JwtHelper.generateJWT(String.valueOf(uid),String.valueOf(System.currentTimeMillis()));
         JedisUtils.setex(jsonKey, SecretConstant.EXPIRESSECOND, String.valueOf(uid));
         return jsonKey;
     }
@@ -339,7 +340,7 @@ public class UserServiceImp implements UserService {
         }
         // 校验验证码是否正确
         if (EmptyUtils.isEmpty(verifyCode) || (!verifyCodeReg(kgcUser.getUsername(), verifyCode))) {
-            map.put("verifyCode", "验证码输入不正确或已失效，过"+Constant.VERIFY_CODE_EXPIRE+"秒后可重新获取");
+            map.put("verifyCode", "验证码输入不正确或已失效");
             return false;
         }
         // 校验用户名是否已经存在
@@ -360,7 +361,11 @@ public class UserServiceImp implements UserService {
         // 使用Md5 16位方式加密密码
         String password = MD5.getMd5(kgcUser.getPassword(), Constant.PWD_MD5_LENGTH16);
         kgcUser.setPassword(password);
-        return addKgcUserToDb(kgcUser);
+        if(addKgcUserToDb(kgcUser)){
+            map.put("uid", kgcUser.getId());
+            return true;
+        }
+        return false;
     }
 
 
@@ -385,9 +390,15 @@ public class UserServiceImp implements UserService {
         return smsService.sendEmailCode(userName);
     }
 
+    public boolean isExistUser(HttpServletRequest req) {
+        String userName = req.getParameter("userName");
+        return kud.isExistUser(userName);
+    }
+
     public static void main(String[] args) {
 
     }
+
 }
 
 

@@ -42,6 +42,13 @@ public interface UserService {
     public boolean updateTaskStatus(HttpServletRequest req);
 
     /**
+     * 判断用户名是否存在
+     * @param req
+     * @return
+     */
+    public boolean isExistUser(HttpServletRequest req);
+
+    /**
      * 当用户注册后，初始化他的新手任务列表
      * @param req
      * @return

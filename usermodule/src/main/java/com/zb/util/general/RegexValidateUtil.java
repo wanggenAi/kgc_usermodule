@@ -36,7 +36,7 @@ public class RegexValidateUtil {
      * @return
      */
     public static boolean checkEmail(String email) {
-        String regex = "^\\w+[-+.]\\w+)*@\\w+([-.]\\w+)*\\.\\w+([-.]\\w+)*$ ";
+        String regex = "^[A-Za-z0-9\\u4e00-\\u9fa5]+@[a-zA-Z0-9_-]+(\\.[a-zA-Z0-9_-]+)+$";
         return check(email, regex);
     }
 

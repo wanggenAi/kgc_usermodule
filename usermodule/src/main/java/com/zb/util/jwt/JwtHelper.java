@@ -73,8 +73,8 @@ public class JwtHelper {
                  */
                 //加密后的客户编号
                 .claim("userId", AESSecretUtil.encryptToStr(userId, SecretConstant.DATAKEY))
-                /*//客户端浏览器信息
-                .claim("userAgent", identities[0])*/
+                //客户端浏览器信息,主要是系统当前时间
+                .claim("userAgent", identities[0])
                 //Signature
                 .signWith(signatureAlgorithm, signingKey);
         /*//添加Token过期时间 暂时不设置，使用redis的过期时间
@@ -129,7 +129,7 @@ public class JwtHelper {
             /*//客户端浏览器信息
             retMap.put("userAgent", claims.get("userAgent"));*/
             //刷新JWT
-            retMap.put("freshToken", generateJWT(decryptUserId));
+            retMap.put("freshToken", generateJWT(decryptUserId,claims.get("userAgent").toString()));
         } else {
             logger.warn("[JWTHelper]-JWT解析出claims为空");
         }
@@ -137,7 +137,7 @@ public class JwtHelper {
     }
 
     public static void main(String[] args) {
-        String jsonWebKey = generateJWT("123");
+        String jsonWebKey = generateJWT("123",String.valueOf(System.currentTimeMillis()));
         System.out.println(jsonWebKey);
         Claims claims = parseJWT(jsonWebKey);
         System.out.println(claims);

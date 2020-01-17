@@ -127,9 +127,9 @@ public class BaseDao {
                 T obj = cls.newInstance(); // 创建cls实例
                 // 获取数据库表的字段数
                 for (int i = 1; i <= metaData.getColumnCount(); i++) {
-                    String columnar = metaData.getColumnLabel(i); // 获取字段名称，一定要和实体类的属性名对应好，实体类中的属性名应当全部小写
+                    String columnar = metaData.getColumnLabel(i).toLowerCase(); // 获取字段名称，一定要和实体类的属性名对应好，实体类中的属性名应当全部小写
                     String name = "set" + StringUtil.toUpper(columnar);
-                    Field field = cls.getDeclaredField(columnar.toLowerCase());
+                    Field field = cls.getDeclaredField(columnar);
                     Method method = cls.getMethod(name, field.getType());
                     // 先获取改行此列的值
                     Object realParam = rs.getObject(columnar);
@@ -227,6 +227,7 @@ public class BaseDao {
 
     /**
      * 分页查询
+     *
      * @param pageInfo
      * @param sql
      * @param args

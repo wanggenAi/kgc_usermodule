@@ -15,6 +15,6 @@ public class Constant {
     /**
      * 验证码过期时间，默认是70秒
      */
-    public final static int VERIFY_CODE_EXPIRE = 70;
+    public final static int VERIFY_CODE_EXPIRE = 120;
 
 }
