@@ -2,7 +2,7 @@ package com.zb.service.inter;
 
 public interface SmsService {
 
-    public boolean sendPhoneCode(String userName);
+    public String sendPhoneCode(String userName);
 
-    public boolean sendEmailCode(String userName);
+    public String sendEmailCode(String userName);
 }

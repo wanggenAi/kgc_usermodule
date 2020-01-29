@@ -14,6 +14,7 @@ import com.zb.util.general.Constant;
 import com.zb.util.general.EmptyUtils;
 
 import javax.servlet.ServletException;
+import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -25,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 
 @WebServlet("*.calc")
+@MultipartConfig
 public class ServletUserData extends HttpServlet {
 
     private UserDataService userDataService = new UserDataServiceImp();
@@ -45,6 +47,7 @@ public class ServletUserData extends HttpServlet {
 
     /**
      * 修改用户关注人数
+     *
      * @param req
      * @param resp
      * @throws ServletException
@@ -60,6 +63,7 @@ public class ServletUserData extends HttpServlet {
 
     /**
      * 修改用户粉丝数量
+     *
      * @param req
      * @param resp
      * @throws ServletException
@@ -75,6 +79,7 @@ public class ServletUserData extends HttpServlet {
 
     /**
      * 修改用户点赞数量
+     *
      * @param req
      * @param resp
      * @throws ServletException
@@ -90,6 +95,7 @@ public class ServletUserData extends HttpServlet {
 
     /**
      * 修改用户帖子数量
+     *
      * @param req
      * @param resp
      * @throws ServletException
@@ -105,6 +111,7 @@ public class ServletUserData extends HttpServlet {
 
     /**
      * 修改用户KB数量
+     *
      * @param req
      * @param resp
      * @throws ServletException
@@ -120,6 +127,7 @@ public class ServletUserData extends HttpServlet {
 
     /**
      * 用户修改余额
+     *
      * @param req
      * @param resp
      * @throws ServletException
@@ -135,6 +143,7 @@ public class ServletUserData extends HttpServlet {
 
     /**
      * 用户修改经验值
+     *
      * @param req
      * @param resp
      * @throws ServletException
@@ -147,21 +156,35 @@ public class ServletUserData extends HttpServlet {
 
     /**
      * 返回用户基础数据
+     *
      * @param req
      * @param resp
      * @throws ServletException
      * @throws IOException
      */
-    private void getUserData(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException{
+    private void getUserData(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         UserData userData = userDataService.getUserData(req);
         resp.getWriter().write(JSON.toJSONString(ResultData.success(userData)));
     }
 
     /**
-     * 获取用户相关的实体数据
+     * 获取用户本身等级的最高分
+     *
      * @param req
      * @param resp
-     * 传递 uid 参数
+     * @throws ServletException
+     * @throws IOException
+     */
+    private void getMaxLevelScore(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        int maxval = userDataService.getMaxLevelScore(req);
+        resp.getWriter().write(JSON.toJSONString(ResultData.success(maxval)));
+    }
+
+    /**
+     * 获取用户相关的实体数据
+     *
+     * @param req
+     * @param resp 传递 uid 参数
      * @throws ServletException
      * @throws IOException
      */
@@ -171,7 +194,22 @@ public class ServletUserData extends HttpServlet {
     }
 
     /**
+     * 修改用户的基本信息
+     * kgcUser
+     *
+     * @param req
+     * @param resp
+     * @throws ServletException
+     * @throws IOException
+     */
+    private void updateUser(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        if (userDataService.updateUser(req))
+            resp.getWriter().write(JSON.toJSONString(ResultData.success(null, "修改成功")));
+    }
+
+    /**
      * 根据 provId 获取城市集合
+     *
      * @param req
      * @param resp
      * @throws ServletException
@@ -183,36 +221,51 @@ public class ServletUserData extends HttpServlet {
     }
 
     /**
+     * 获取所有省份信息
+     *
+     * @param req
+     * @param resp
+     * @throws ServletException
+     * @throws IOException
+     */
+    private void getAllProvince(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        List<District> districts = userService.getAllProvince();
+        resp.getWriter().write(JSONObject.toJSONString(ResultData.success(districts)));
+    }
+
+    /**
      * 获取用户签到的数据
+     *
      * @param req
      * @param resp
      * @throws ServletException
      * @throws IOException
      */
     private void getSign(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        TbSignIn tbSignIn = userService.getUserSignById(req);
-        if (EmptyUtils.isEmpty(tbSignIn)) {
-            resp.getWriter().write(JSON.toJSONString(ResultData.fail("该用户今天没有签到")));
-            return;
-        }
-        resp.getWriter().write(JSON.toJSONString(ResultData.success(tbSignIn)));
+        TbSignIn tbSignIn = userService.getSign(req);
+        resp.getWriter().write(JSON.toJSONString(ResultData.success(tbSignIn, "签到成功")));
     }
 
     /**
      * 用户签到的方法
+     *
      * @param req
      * @param resp
      * @throws ServletException
      * @throws IOException
      */
     private void doSign(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        TbSignIn tbSignIn = userService.sign(req);
-        resp.getWriter().write(JSON.toJSONString(ResultData.success(tbSignIn)));
+        if (userService.sign(req)) {
+            resp.getWriter().write(JSON.toJSONString(ResultData.success(null, "签到成功")));
+            return;
+        }
+        resp.getWriter().write(JSON.toJSONString(ResultData.fail("签到失败")));
     }
 
     /**
      * 获取总共签到的次数
      * 该接口就算被恶意重复调用，也不会修改redis后台中的总签到数，后台已经判断用户今天是否已经签到过
+     *
      * @param req
      * @param resp
      * @throws ServletException
@@ -225,9 +278,9 @@ public class ServletUserData extends HttpServlet {
 
     /**
      * 获取用户的任务列表
+     *
      * @param req
-     * @param resp
-     * 传递参数： uid
+     * @param resp 传递参数： uid
      * @throws ServletException
      * @throws IOException
      */
@@ -242,9 +295,9 @@ public class ServletUserData extends HttpServlet {
 
     /**
      * 修改用户做的任务的状态
+     *
      * @param req
-     * @param resp
-     * 传递参数: uid taskId taskStatus
+     * @param resp 传递参数: uid taskId taskStatus
      * @throws ServletException
      * @throws IOException
      */
@@ -258,9 +311,9 @@ public class ServletUserData extends HttpServlet {
 
     /**
      * 用户初始化任务列表
+     *
      * @param req
-     * @param resp
-     * 传递参数 uid
+     * @param resp 传递参数 uid
      * @throws ServletException
      * @throws IOException
      */
@@ -270,15 +323,15 @@ public class ServletUserData extends HttpServlet {
     }
 
     /**
-     *
      * uid 用户id
      * headerImg 文件标签名称
      * realPath 项目的web路径用来存放图片的目录
+     *
      * @throws ServletException
      * @throws IOException
      */
     private void uploadHeaderImg(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        Part part =req.getPart("headerImg");
+//        Part part =req.getPart("headerImg");
         if (userService.uploadFile(req)) {
             resp.getWriter().write(JSON.toJSONString(ResultData.success(null)));
             return;
@@ -289,6 +342,7 @@ public class ServletUserData extends HttpServlet {
     /**
      * 获取用户的头像
      * 传入 uid
+     *
      * @throws ServletException
      * @throws IOException
      */

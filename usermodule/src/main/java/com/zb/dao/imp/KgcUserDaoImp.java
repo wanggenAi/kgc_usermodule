@@ -6,6 +6,7 @@ import com.zb.entity.KgcUser;
 import com.zb.entity.TbSignIn;
 import com.zb.util.database.BaseDao;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -38,6 +39,11 @@ public class KgcUserDaoImp extends BaseDao implements KgcUserDao {
         return getUid(sql, name, pwd);
     }
 
+    public boolean changePwd(String name, String pwd) {
+        String sql = "update kgc_user set password = ? where username = ?";
+        return executeUpdate(sql, pwd, name) > 0 ? true : false;
+    }
+
     /**
      * 根据uid查询用户实体
      */
@@ -49,9 +55,17 @@ public class KgcUserDaoImp extends BaseDao implements KgcUserDao {
     /**
      * 查询用户签到信息
      */
-    public TbSignIn getSignById(long uid) {
+    public TbSignIn getSignByIdAndYear(long uid, int year) {
+        String sql = "select * from tb_signin where uid = ? and sign_year = ?";
+        return selectOne(sql, TbSignIn.class, uid, year);
+    }
+
+    /**
+     * 查询用户签到信息集合
+     */
+    public List<TbSignIn> getSignById(long uid) {
         String sql = "select * from tb_signin where uid = ?";
-        return selectOne(sql, TbSignIn.class, uid);
+        return selectMany(sql, TbSignIn.class, uid);
     }
 
     /**
@@ -62,22 +76,11 @@ public class KgcUserDaoImp extends BaseDao implements KgcUserDao {
      * @param uid
      * @return
      */
-    public boolean upSignAfterSuccess(int continue_sign, long last_sign_time, long uid, String signHistory) {
-        String sql = "update tb_signin set sign_count = sign_count+1,continue_sign=?,last_sign_time=?,sign_history=? where uid = ?";
-        return executeUpdate(sql, continue_sign, last_sign_time, signHistory, uid) > 0 ? true : false;
+    public boolean upSignAfterSuccess(int continue_sign, long last_sign_time, long uid, String signHistory, int year) {
+        String sql = "update tb_signin set sign_count = sign_count+1,continue_sign=?,last_sign_time=?,sign_history=? where uid = ? and sign_year = ?";
+        return executeUpdate(sql, continue_sign, last_sign_time, signHistory, uid, year) > 0 ? true : false;
     }
 
-    /**
-     * 用户签到
-     *
-     * @param signHistory
-     * @param uid
-     * @return
-     */
-    public boolean userSign(String signHistory, long uid) {
-        String sql = "update tb_signin set sign_history = ? where uid = ?";
-        return executeUpdate(sql, signHistory, uid) > 0 ? true : false;
-    }
 
     /**
      * 根据城市id获取地区记录
@@ -124,6 +127,17 @@ public class KgcUserDaoImp extends BaseDao implements KgcUserDao {
     }
 
     /**
+     * 修改用户的个性签名
+     * @param str
+     * @param uid
+     * @return
+     */
+    public boolean updateSignName(String str, long uid) {
+        String sql = "update kgc_user set signname = ? where id = ?";
+        return executeUpdate(sql, str, uid) > 0 ? true : false;
+    }
+
+    /**
      * 查询用户头像信息
      *
      * @return
@@ -131,7 +145,7 @@ public class KgcUserDaoImp extends BaseDao implements KgcUserDao {
     public String getUserHeaderImg(long uid) {
         String sql = "select head_url from kgc_user where id = ?";
         List<Map<String, Object>> list = selectMany(sql, uid);
-        return (String) (list.get(0).get("head_url"));
+        return (String) (list.get(0).get("HEAD_URL"));
     }
 
     /**

@@ -13,8 +13,12 @@ public class Constant {
     // 16位的MD5加密密码
     public final static int PWD_MD5_LENGTH16 = 16;
     /**
-     * 验证码过期时间，默认是70秒
+     * 验证码过期时间，默认是300秒
      */
-    public final static int VERIFY_CODE_EXPIRE = 120;
+    public final static int VERIFY_CODE_EXPIRE = 300;
+    /**
+     * 验证码可重新设置的时间，默认60秒
+     */
+    public final static int VERIFY_CODE_UPDATE = 60;
 
 }

@@ -113,8 +113,7 @@ public class FtpUtil {
     public static String uploadHeaderImg(Part part) throws Exception {
         connectFtp();
         String pName = part.getSubmittedFileName();
-        String uniqueName = Base64.getEncoder().encodeToString(pName.getBytes("utf-8")) +
-                pName.substring(pName.lastIndexOf("."));
+        String uniqueName = Base64.getEncoder().encodeToString(pName.getBytes("utf-8")) + pName.substring(pName.lastIndexOf("."));
         InputStream input = part.getInputStream();
         ftp.storeFile(uniqueName, input);
         input.close();

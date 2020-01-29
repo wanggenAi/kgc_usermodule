@@ -4,10 +4,12 @@ import com.zb.dao.imp.CouponDaoImp;
 import com.zb.service.inter.CouponService;
 import com.zb.util.database.redis.JedisUtils;
 import com.zb.util.general.Constant;
+import org.jetbrains.annotations.NotNull;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Pipeline;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -71,9 +73,9 @@ public class CouponServiceImp implements CouponService {
      * 获取某用户所有优惠券们
      *
      * @param req
-     * @return
+     * @return List<Map<String,Object>>
      */
-    public List<Map<String, Object>> getCouponFromUser(HttpServletRequest req) {
+    public List<Map<String, Object>> getCouponFromUser(@NotNull HttpServletRequest req) {
         long uid = Long.parseLong(req.getParameter("uid"));
         return couponDaoImp.getCouponFromUser(uid);
     }
@@ -82,9 +84,9 @@ public class CouponServiceImp implements CouponService {
      * 修改某用户某张优惠券的使用状态
      *
      * @param req
-     * @return
+     * @return boolean
      */
-    public boolean updateCouponUsed(HttpServletRequest req) {
+    public boolean updateCouponUsed(@NotNull HttpServletRequest req) {
         long uid = Long.parseLong(req.getParameter("uid"));
         int cid = Integer.parseInt(req.getParameter("cid"));
         return couponDaoImp.updateCouponUsed(uid, cid);

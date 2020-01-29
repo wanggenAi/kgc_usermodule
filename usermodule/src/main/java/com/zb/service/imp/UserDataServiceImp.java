@@ -1,6 +1,7 @@
 package com.zb.service.imp;
 
 import com.zb.dao.imp.UserDataDaoImp;
+import com.zb.entity.KgcUser;
 import com.zb.entity.UserData;
 import com.zb.service.inter.UserDataService;
 
@@ -11,6 +12,26 @@ import javax.servlet.http.HttpServletRequest;
  */
 public class UserDataServiceImp implements UserDataService {
     private UserDataDaoImp userDataDaoImp = new UserDataDaoImp();
+
+    @Override
+    public int getMaxLevelScore(HttpServletRequest req) {
+        int id = Integer.parseInt(req.getParameter("id"));
+        return userDataDaoImp.getMaxVal2Level(id);
+    }
+
+    @Override
+    public boolean updateUser(HttpServletRequest req) {
+        KgcUser kgcUser = new KgcUser();
+        kgcUser.setRealname(req.getParameter("realname"));
+        kgcUser.setSex(Integer.parseInt(req.getParameter("sex")));
+        kgcUser.setBirthday(Long.parseLong(req.getParameter("birthday")));
+        kgcUser.setSchool(req.getParameter("school"));
+        kgcUser.setProfessional(req.getParameter("professional"));
+        kgcUser.setAddress_city(Integer.parseInt(req.getParameter("address_city")));
+        kgcUser.setSignname(req.getParameter("signname"));
+        kgcUser.setId(Long.parseLong(req.getParameter("id")));
+        return userDataDaoImp.updateUser(kgcUser);
+    }
 
     // 关注
     public boolean chgFollowC(HttpServletRequest req) {

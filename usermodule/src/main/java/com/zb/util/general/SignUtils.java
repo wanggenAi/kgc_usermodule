@@ -1,5 +1,6 @@
 package com.zb.util.general;
 
+import com.zb.entity.TbSignIn;
 import sun.misc.BASE64Decoder;
 import sun.misc.BASE64Encoder;
 
@@ -84,6 +85,27 @@ public class SignUtils {
         for (int i = start; i <= end; i++) {
             if (isSign(data, i)) {
                 list.add(LocalDate.ofYearDay(year, i).toString());
+            }
+        }
+        return list;
+    }
+
+    /**
+     * 获取所有签到日期
+     *
+     * @param signInList
+     * @return
+     */
+    public static List<String> getSignHistoryAll(List<TbSignIn> signInList) {
+        List<String> list = new ArrayList<>();
+        for (TbSignIn tbSignIn : signInList) {
+            byte[] data = signHistoryToByte(tbSignIn.getSign_history());
+            LocalDate localDate = LocalDate.ofYearDay(tbSignIn.getSign_year(), 1);
+            int endday = localDate.isLeapYear() ? 366 : 365;
+            for (int i = 1; i <= endday; i++) {
+                if (isSign(data, i)) {
+                    list.add(LocalDate.ofYearDay(tbSignIn.getSign_year(), i).toString());
+                }
             }
         }
         return list;

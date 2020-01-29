@@ -1,6 +1,5 @@
 package com.zb.service.imp;
 
-import com.zb.dao.imp.CouponDaoImp;
 import com.zb.dao.imp.KgcUserDaoImp;
 import com.zb.dao.imp.TaskDaoImp;
 import com.zb.dao.imp.UserDataDaoImp;
@@ -22,43 +21,46 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Stream;
 
 public class UserServiceImp implements UserService {
     KgcUserDaoImp kud = new KgcUserDaoImp();
     TaskDaoImp taskDao = new TaskDaoImp();
     UserDataDaoImp userDataDao = new UserDataDaoImp();
     SmsService smsService = new SmsServiceImp();
+
     /**
      * 验证用户密码是否正确
      *
      * @param req
-     * @param resp
      * @return
      */
-    public long authUserLogin(HttpServletRequest req, HttpServletResponse resp) {
+    public Map<String, Object> authUserLogin(HttpServletRequest req) {
+        Map<String, Object> map = new HashMap<>();
         String name = req.getParameter("userName");
         String pwd = req.getParameter("password");
         pwd = MD5.getMd5(pwd, Constant.PWD_MD5_LENGTH16);
         long uid = kud.getUser(name, pwd);
         if (uid == Constant.NOT_FOUND_UID) { // 用户名或密码错误
-            return uid;
+            map.put("uid", uid);
+            return map;
         }
         // 要生成token 并且将token/uid 存入到redis中，并设置过期时间
         String jsonKey = saveUid2Redis(uid);
-        resp.addHeader("User-Token", jsonKey);
-        return uid; // 返回给控制层
+        map.put("uid", uid);
+        map.put("jwtToken", jsonKey);
+        return map; // 返回给控制层
     }
 
     /**
      * 将键值保存到redis数据库中
+     *
      * @param uid
      * @return
      */
     private String saveUid2Redis(long uid) {
-        String jsonKey = JwtHelper.generateJWT(String.valueOf(uid),String.valueOf(System.currentTimeMillis()));
+        String jsonKey = JwtHelper.generateJWT(String.valueOf(uid), String.valueOf(System.currentTimeMillis()));
         JedisUtils.setex(jsonKey, SecretConstant.EXPIRESSECOND, String.valueOf(uid));
         return jsonKey;
     }
@@ -77,16 +79,25 @@ public class UserServiceImp implements UserService {
         if (!(address_city == 0)) {
             // 查找用户的地区信息
             kgcUser.setDistrict(kud.getDistrictByCity(address_city));
+        } else {
+            kgcUser.setDistrict(new District());
         }
-        // 获取所有的省份集合
-        List<District> districts = kud.getAllProvince();
         map.put("kgcUser", kgcUser);
-        map.put("districts", districts);
         return map;
     }
 
     /**
+     * 获取所有省份的集合
+     *
+     * @return
+     */
+    public List<District> getAllProvince() {
+        return kud.getAllProvince();
+    }
+
+    /**
      * 根据省份的id返回对应的市信息
+     *
      * @param req
      * @return
      */
@@ -96,64 +107,62 @@ public class UserServiceImp implements UserService {
     }
 
     /**
-     * 获取用户签到数据
-     * @param req
-     * @return
-     */
-    public TbSignIn getUserSignById(HttpServletRequest req) {
-        long uid = Long.parseLong(req.getParameter("uid"));
-        // 首先查询今天是否有签到
-        TbSignIn ts = kud.getSignById(uid);
-        byte[] data = SignUtils.signHistoryToByte(ts.getSign_history());
-        int dayOfYear = LocalDate.now().getDayOfYear();
-         ts.setSign(SignUtils.isSign(data, dayOfYear));
-        // 获取当前月签到的日期列表
-        ts.setSignList(SignUtils.getSignHistoryByMonth(ts.getSign_history(), LocalDate.now().getMonthValue()));
-        return ts;
-    }
-
-    /**
-     * 用户签到的方法,如果成则直接返回用户签到表
+     * 用户签到的方法,只负责签到
      *
      * @param req
      * @return 用户对象
      */
-    synchronized public TbSignIn sign(HttpServletRequest req) {
+    synchronized public boolean sign(HttpServletRequest req) {
         long uid = Long.parseLong(req.getParameter("uid"));
         // 查询用户的签到历史
-        TbSignIn ts = kud.getSignById(uid);
+        int year = LocalDate.now().getYear();
+        TbSignIn ts = kud.getSignByIdAndYear(uid, year);
         /* 首先判断今天是否已经签到过，避免通过接口的方式增加redis的后台总数
-        * 假如今天已经签到过了，那么就不做redis的后台自增长操作
-        * */
+         * 假如今天已经签到过了，那么就不做redis的后台自增长操作
+         * */
         byte[] data = SignUtils.signHistoryToByte(ts.getSign_history());
         // 用户今天已经签到过
         if (SignUtils.isSign(data, LocalDate.now().getDayOfYear())) {
             // 获取签到日期集合
-            ts.setSignList(SignUtils.getSignHistoryByMonth(ts.getSign_history(), LocalDate.now().getMonthValue()));
-            ts.setSign(true);
-            return ts;
+//            ts.setSignList(SignUtils.getSignHistoryByMonth(ts.getSign_history(), LocalDate.now().getMonthValue()));
+            return false;
         }
         // 修改签到历史，今天签到
         String signHistory = SignUtils.sign(ts.getSign_history(), LocalDate.now().getDayOfYear());
-        ts.setSign_history(signHistory);
         // 获取用户的连续签到次数
         int continue_sign = SignUtils.getMaxContinuitySingDay(ts.getSign_history());
-        ts.setContinue_sign(continue_sign);
         // 获取当前的签到时间
         long curTime = System.currentTimeMillis(); // 当前的系统时间毫秒数
-        // 获取签到日期集合
-        ts.setSignList(SignUtils.getSignHistoryByMonth(signHistory, LocalDate.now().getMonthValue()));
-        // 修改用户签到数据表
-        if (kud.upSignAfterSuccess(continue_sign, curTime, uid, signHistory)) {
-            ts.setSign(true);
+        if (kud.upSignAfterSuccess(continue_sign, curTime, uid, signHistory, year)) {
             setTotalSignCount();
-            return ts;
+            return true;
         }
-        return null;
+        return false;
+    }
+
+    /**
+     * 用户签到的方法,只负责签到
+     *
+     * @param req
+     * @return 用户对象
+     */
+    public TbSignIn getSign(HttpServletRequest req) {
+        long uid = Long.parseLong(req.getParameter("uid"));
+//        long uid = 1231231233214l;
+        List<TbSignIn> signInList = kud.getSignById(uid);
+        Collections.sort(signInList, Comparator.comparing(TbSignIn::getSign_year).reversed());
+        TbSignIn ts = signInList.get(0);
+        byte[] data = SignUtils.signHistoryToByte(ts.getSign_history());
+        // 用户今天是否已经签到过
+        ts.setSign(SignUtils.isSign(data, LocalDate.now().getDayOfYear()));
+        // 获取签到历史日期字符串
+        ts.setSignList(SignUtils.getSignHistoryAll(signInList));
+        return ts;
     }
 
     /**
      * 获取今天签到的总人数
+     *
      * @return long
      */
     public long getTotalSignCount() {
@@ -197,6 +206,7 @@ public class UserServiceImp implements UserService {
 
     /**
      * 上传图片到服务器
+     *
      * @param req
      * @return
      */
@@ -215,6 +225,7 @@ public class UserServiceImp implements UserService {
 
     /**
      * 获取用户头像url，用来给ajax异步更新头像图片
+     *
      * @param req
      * @return
      */
@@ -225,6 +236,7 @@ public class UserServiceImp implements UserService {
 
     /**
      * 当用户注册成功后，初始化用户的一些数据表
+     *
      * @date 2019-12-24 10:31:16
      */
     private boolean initUserData(long uid) {
@@ -245,6 +257,7 @@ public class UserServiceImp implements UserService {
 
     /**
      * 将kgc用户添加到后台数据库中
+     *
      * @param kgcUser
      * @return
      */
@@ -272,8 +285,8 @@ public class UserServiceImp implements UserService {
 
     /**
      * 用户注册
-     * @param req
-     * userName 用户名 password 用户密码 verifyCode 验证码
+     *
+     * @param req userName 用户名 password 用户密码 verifyCode 验证码
      * @return map集合，程序执行的结果
      * @date 2019-12-25 10:06:50
      */
@@ -285,27 +298,40 @@ public class UserServiceImp implements UserService {
         kgcUser.setUsername(userName);
         kgcUser.setPassword(password);
         // 验证注册步骤是否成功
-       return rexUserAll(kgcUser, map, verifyCode);
+        return rexUserAll(kgcUser, map, verifyCode);
     }
 
     /**
      * 向redis数据库查询用户对应的验证码是否输入的正确
+     *
      * @param userName
      * @param verifyCode
      * @return
      */
-    private boolean verifyCodeReg(String userName,String verifyCode) {
+    private boolean verifyCodeReg(String userName, String verifyCode) {
         String jv = JedisUtils.get(userName);
         return verifyCode.equals(jv);
     }
 
     /**
+     * 根据前端用户名和验证码判断输入是否正确
+     *
+     * @param req params: userName verifyCode
+     */
+    public boolean checkVerfyCodeInput(HttpServletRequest req) {
+        String userName = req.getParameter("userName");
+        String vcode = req.getParameter("verifyCode");
+        return verifyCodeReg(userName, vcode);
+    }
+
+    /**
      * 验证用户输入的内容准确性
+     *
      * @param kgcUser
      * @param map
      * @return
      */
-    private boolean rexUserInput(KgcUser kgcUser,Map<String, Object> map) {
+    private boolean rexUserInput(KgcUser kgcUser, Map<String, Object> map) {
         if (RegexValidateUtil.isPhone(kgcUser.getUsername())) {
             if (!RegexValidateUtil.checkCellphone(kgcUser.getUsername())) {
                 map.put("username", "手机号不正确");
@@ -328,6 +354,7 @@ public class UserServiceImp implements UserService {
     /**
      * 验证用户注册时每一个流程的正确性，保证一个原子性操作
      * 有一个地方出错则直接返回控制层false
+     *
      * @param kgcUser
      * @param map
      * @param verifyCode
@@ -361,28 +388,48 @@ public class UserServiceImp implements UserService {
         // 使用Md5 16位方式加密密码
         String password = MD5.getMd5(kgcUser.getPassword(), Constant.PWD_MD5_LENGTH16);
         kgcUser.setPassword(password);
-        if(addKgcUserToDb(kgcUser)){
+        if (addKgcUserToDb(kgcUser)) {
             map.put("uid", kgcUser.getId());
             return true;
         }
         return false;
     }
 
+    @Override
+    public boolean changePwd(HttpServletRequest req) {
+        // 判断redis中用户名和验证码是否正确
+        String userName = req.getParameter("userName");
+        if (EmptyUtils.isEmpty(userName)) return false;
+        String verifyCode = req.getParameter("verifyCode");
+        if (EmptyUtils.isEmpty(verifyCode)) return false;
+        String vcode = JedisUtils.get(userName);
+        if (!verifyCode.equals(vcode)) return false;
+        String pwd = req.getParameter("password");
+        if (EmptyUtils.isEmpty(pwd)) return false;
+
+        // 调用数据层修改密码的方法
+        pwd = MD5.getMd5(pwd, Constant.PWD_MD5_LENGTH16);
+        return kud.changePwd(userName, pwd);
+
+    }
 
     /**
      * 给用户发送手机或是邮件验证码
      * userName 用户名
+     *
      * @return
      */
-    public boolean sendVerifyCodeByEmailOrCell(HttpServletRequest req) {
+    public String sendVerifyCodeByEmailOrCell(HttpServletRequest req) {
         String userName = req.getParameter("userName");
         // 用户名为空
         if (EmptyUtils.isEmpty(userName)) {
-            return false;
+            return null;
         }
-        // 校验该用户是否已经发送过了验证码且还没有到期
+        // 校验该用户是否已经发送过了验证码且还没有到修改时间
         if (EmptyUtils.isNotEmpty(JedisUtils.get(userName))) {
-            return false;
+            if (Constant.VERIFY_CODE_EXPIRE - JedisUtils.ttl(userName) < Constant.VERIFY_CODE_UPDATE) {
+                return null;
+            }
         }
         if (RegexValidateUtil.isPhone(userName)) {
             return smsService.sendPhoneCode(userName);
@@ -396,7 +443,13 @@ public class UserServiceImp implements UserService {
     }
 
     public static void main(String[] args) {
-
+        UserServiceImp usi = new UserServiceImp();
+        TbSignIn tbi = usi.getSign(null);
+        System.out.println(tbi.getSignList().toString());
+        String signHistory =
+                SignUtils.sign("YAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+                        3);
+        System.out.println(signHistory);
     }
 
 }

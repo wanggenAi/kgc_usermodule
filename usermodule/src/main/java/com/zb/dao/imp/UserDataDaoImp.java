@@ -1,5 +1,6 @@
 package com.zb.dao.imp;
 
+import com.zb.entity.KgcUser;
 import com.zb.entity.UserData;
 import com.zb.util.database.BaseDao;
 
@@ -13,6 +14,17 @@ public class UserDataDaoImp extends BaseDao {
             return true; // 插入成功
         }
         return false;
+    }
+
+    /**
+     * 修改用户基础信息
+     * @param kgcUser
+     * @return
+     */
+    public boolean updateUser(KgcUser kgcUser) {
+        String sql = "update kgc_user set realname=?, sex=?, birthday=?, school=?, professional=?, address_city=?, signname=?  where id = ?";
+        return executeUpdate(sql, kgcUser.getRealname(), kgcUser.getSex(), kgcUser.getBirthday(), kgcUser.getSchool(), kgcUser.getProfessional(),
+                kgcUser.getAddress_city(), kgcUser.getSignname(), kgcUser.getId()) > 0 ? true : false;
     }
 
     // 修改粉丝值字段

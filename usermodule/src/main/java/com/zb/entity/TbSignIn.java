@@ -10,6 +10,15 @@ public class TbSignIn {
     private long last_sign_time;
     private List<String> signList;
     private boolean sign;
+    private int sign_year;
+
+    public int getSign_year() {
+        return sign_year;
+    }
+
+    public void setSign_year(int sign_year) {
+        this.sign_year = sign_year;
+    }
 
     public boolean isSign() {
         return sign;

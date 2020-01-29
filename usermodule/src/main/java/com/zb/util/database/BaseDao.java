@@ -45,7 +45,6 @@ public class BaseDao {
 
     /**
      * 查询一条记录
-     *
      * @param sql 需要执行的sql
      * @param cls 由此Class对象建模的类的类型
      */
@@ -148,7 +147,6 @@ public class BaseDao {
 
     /**
      * 重载查询，可以使用表关联查询，返回一个listmap的集合
-     *
      * @param sql
      * @param args
      * @return

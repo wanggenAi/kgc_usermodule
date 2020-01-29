@@ -13,4 +13,6 @@ public interface UserDataService {
     public boolean chgMoneyC(HttpServletRequest req);
     public void userAddScore(HttpServletRequest req);
     public UserData getUserData(HttpServletRequest req);
+    public int getMaxLevelScore(HttpServletRequest req);
+    public boolean updateUser(HttpServletRequest req);
 }

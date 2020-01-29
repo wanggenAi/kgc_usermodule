@@ -17,7 +17,7 @@ public class SmsServiceImp implements SmsService {
      * @param userName
      * @return
      */
-    public boolean sendPhoneCode(String userName) {
+    public String sendPhoneCode(String userName) {
         //https://www.yuntongxun.com/member/main
         CCPRestSmsSDK sdk = new CCPRestSmsSDK();
         sdk.init("app.cloopen.com", "8883");
@@ -27,10 +27,10 @@ public class SmsServiceImp implements SmsService {
         HashMap result = sdk.sendTemplateSMS(userName, "1", new String[]{rcode + "", "1"});
         if ("000000".equals(result.get("statusCode"))) {
             // 发送成功后添加到redis数据库中并设置过期时间
-            JedisUtils.setnx(userName, rcode+"", Constant.VERIFY_CODE_EXPIRE);
-            return true;
+            JedisUtils.setex(userName, Constant.VERIFY_CODE_EXPIRE, rcode+"");
+            return Integer.toString(rcode);
         }
-        return false;
+        return null;
     }
 
     /**
@@ -39,14 +39,14 @@ public class SmsServiceImp implements SmsService {
      * @param userName
      * @return
      */
-    public boolean sendEmailCode(String userName) {
+    public String sendEmailCode(String userName) {
         String rcode = randomCode()+"";
         MailUtil mailUtil = new MailUtil(userName, rcode);
         // 单独启动线程去发送邮件
         new Thread(() -> mailUtil.run()).start();
         // 将数据添加到redis中
-        JedisUtils.setnx(userName, rcode+"", Constant.VERIFY_CODE_EXPIRE);
-        return true;
+        JedisUtils.setex(userName, Constant.VERIFY_CODE_EXPIRE, rcode+"");
+        return rcode;
     }
 
     private int randomCode() {
@@ -55,7 +55,7 @@ public class SmsServiceImp implements SmsService {
 
     public static void main(String[] args) {
         SmsServiceImp smsServiceImp = new SmsServiceImp();
-        if (smsServiceImp.sendPhoneCode("18652154225")) {
+        if (smsServiceImp.sendPhoneCode("18652154225")!=null) {
             System.out.println("发送成功");
         }else
             System.out.println("发送失败");

@@ -7,14 +7,18 @@
         <filter-name>charFilter</filter-name>
         <filter-class>com.zb.servlet.filter.CharEncodingFilter</filter-class>
     </filter>
-    <!--<filter>
+    <filter>
         <filter-name>tokenFilter</filter-name>
         <filter-class>com.zb.servlet.filter.CheckJwtTokenFilter</filter-class>
-    </filter>-->
-    <!--<filter-mapping>
+    </filter>
+    <filter-mapping>
         <filter-name>tokenFilter</filter-name>
-        <url-pattern>*.do</url-pattern>
-    </filter-mapping>-->
+        <url-pattern>*.calc</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>tokenFilter</filter-name>
+        <url-pattern>*.rule</url-pattern>
+    </filter-mapping>
     <filter-mapping>
         <filter-name>charFilter</filter-name>
         <url-pattern>/*</url-pattern>

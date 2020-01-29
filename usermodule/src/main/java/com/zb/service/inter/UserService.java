@@ -13,22 +13,33 @@ import java.util.List;
 import java.util.Map;
 
 public interface UserService {
-    long authUserLogin(HttpServletRequest req, HttpServletResponse resp);
+    Map<String, Object> authUserLogin(HttpServletRequest req);
 
     Map<String, Object> getUserById(HttpServletRequest req, HttpServletResponse resp);
+
     public long getTotalSignCount();
-    public TbSignIn getUserSignById(HttpServletRequest req);
-    public TbSignIn sign(HttpServletRequest req);
+
+    public boolean sign(HttpServletRequest req);
+
+    public TbSignIn getSign(HttpServletRequest req);
 
     /**
      * 根据省id获取城市集合
+     *
      * @param req
      * @return
      */
     public List<District> getCityByProv(HttpServletRequest req);
 
     /**
+     * 获取所有省份集合
+     * @return
+     */
+    public List<District> getAllProvince();
+
+    /**
      * 查询用户任务列表
+     *
      * @param req
      * @return
      */
@@ -36,6 +47,7 @@ public interface UserService {
 
     /**
      * 当用户完成一个任务后，修改任务的状态
+     *
      * @param req
      * @return
      */
@@ -43,6 +55,7 @@ public interface UserService {
 
     /**
      * 判断用户名是否存在
+     *
      * @param req
      * @return
      */
@@ -50,6 +63,7 @@ public interface UserService {
 
     /**
      * 当用户注册后，初始化他的新手任务列表
+     *
      * @param req
      * @return
      */
@@ -61,6 +75,10 @@ public interface UserService {
 
     public boolean registerUser(HttpServletRequest req, Map<String, Object> map);
 
-    public boolean sendVerifyCodeByEmailOrCell(HttpServletRequest req);
+    public String sendVerifyCodeByEmailOrCell(HttpServletRequest req);
+
+    public boolean checkVerfyCodeInput(HttpServletRequest req);
+
+    public boolean changePwd(HttpServletRequest req);
 
 }
