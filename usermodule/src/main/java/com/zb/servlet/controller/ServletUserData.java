@@ -243,7 +243,7 @@ public class ServletUserData extends HttpServlet {
      */
     private void getSign(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         TbSignIn tbSignIn = userService.getSign(req);
-        resp.getWriter().write(JSON.toJSONString(ResultData.success(tbSignIn, "签到成功")));
+        resp.getWriter().write(JSON.toJSONString(ResultData.success(tbSignIn, "获取签到数据成功")));
     }
 
     /**

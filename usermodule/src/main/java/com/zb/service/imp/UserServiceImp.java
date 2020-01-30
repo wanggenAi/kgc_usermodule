@@ -117,20 +117,26 @@ public class UserServiceImp implements UserService {
         // 查询用户的签到历史
         int year = LocalDate.now().getYear();
         TbSignIn ts = kud.getSignByIdAndYear(uid, year);
-        /* 首先判断今天是否已经签到过，避免通过接口的方式增加redis的后台总数
-         * 假如今天已经签到过了，那么就不做redis的后台自增长操作
-         * */
-        byte[] data = SignUtils.signHistoryToByte(ts.getSign_history());
-        // 用户今天已经签到过
-        if (SignUtils.isSign(data, LocalDate.now().getDayOfYear())) {
-            // 获取签到日期集合
+        // 判断今年用户是否有签到过
+        if (EmptyUtils.isEmpty(ts)) {
+            kud.initUserSign(uid, SignUtils.defaultSignHistory(), year);
+            ts = kud.getSignByIdAndYear(uid, year);
+        } else {
+            /* 首先判断今天是否已经签到过，避免通过接口的方式增加redis的后台总数
+             * 假如今天已经签到过了，那么就不做redis的后台自增长操作
+             * */
+            byte[] data = SignUtils.signHistoryToByte(ts.getSign_history());
+            // 用户今天已经签到过
+            if (SignUtils.isSign(data, LocalDate.now().getDayOfYear())) {
+                // 获取签到日期集合
 //            ts.setSignList(SignUtils.getSignHistoryByMonth(ts.getSign_history(), LocalDate.now().getMonthValue()));
-            return false;
+                return false;
+            }
         }
         // 修改签到历史，今天签到
         String signHistory = SignUtils.sign(ts.getSign_history(), LocalDate.now().getDayOfYear());
         // 获取用户的连续签到次数
-        int continue_sign = SignUtils.getMaxContinuitySingDay(ts.getSign_history());
+        int continue_sign = SignUtils.getMaxContinuitySingDay(signHistory);
         // 获取当前的签到时间
         long curTime = System.currentTimeMillis(); // 当前的系统时间毫秒数
         if (kud.upSignAfterSuccess(continue_sign, curTime, uid, signHistory, year)) {
@@ -249,7 +255,8 @@ public class UserServiceImp implements UserService {
             return false;
         }
         // 初始化用户签到表
-        if (!kud.initUserSign(uid, SignUtils.defaultSignHistory())) {
+        int year = LocalDate.now().getYear();
+        if (!kud.initUserSign(uid, SignUtils.defaultSignHistory(), year)) {
             return false;
         }
         return true;
@@ -443,12 +450,12 @@ public class UserServiceImp implements UserService {
     }
 
     public static void main(String[] args) {
-        UserServiceImp usi = new UserServiceImp();
-        TbSignIn tbi = usi.getSign(null);
-        System.out.println(tbi.getSignList().toString());
+//        UserServiceImp usi = new UserServiceImp();
+//        TbSignIn tbi = usi.getSign(null);
+//        System.out.println(tbi.getSignList().toString());
         String signHistory =
-                SignUtils.sign("YAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-                        3);
+                SignUtils.sign("AAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+                        28);
         System.out.println(signHistory);
     }
 

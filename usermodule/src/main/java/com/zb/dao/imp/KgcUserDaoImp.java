@@ -169,9 +169,9 @@ public class KgcUserDaoImp extends BaseDao implements KgcUserDao {
      * @param sign_history
      * @return
      */
-    public boolean initUserSign(long uid, String sign_history) {
-        String sql = "insert into tb_signin(uid, sign_history) values(?,?)";
-        return executeUpdate(sql, uid, sign_history) > 0 ? true : false;
+    public boolean initUserSign(long uid, String sign_history,int sign_year) {
+        String sql = "insert into tb_signin(uid, sign_history, sign_year) values(?,?,?)";
+        return executeUpdate(sql, uid, sign_history, sign_year) > 0 ? true : false;
     }
 
     public static void main(String[] args) {
