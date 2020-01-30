@@ -18,6 +18,7 @@ public class UserDataDaoImp extends BaseDao {
 
     /**
      * 修改用户基础信息
+     *
      * @param kgcUser
      * @return
      */
@@ -99,6 +100,17 @@ public class UserDataDaoImp extends BaseDao {
     public UserData getUserData(long id) {
         String sql = "select * from userdata where id = ?";
         return selectOne(sql, UserData.class, id);
+    }
+
+    /**
+     * 修改用户昵称
+     * @param id
+     * @param nickName
+     * @return
+     */
+    public boolean updateNickName(long id, String nickName) {
+        String sql = "update kgc_user set nickname = ? where id = ?";
+        return executeUpdate(sql, nickName, id) > 0 ? true : false;
     }
 
     /**

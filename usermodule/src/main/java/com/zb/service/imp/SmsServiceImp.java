@@ -22,7 +22,7 @@ public class SmsServiceImp implements SmsService {
         CCPRestSmsSDK sdk = new CCPRestSmsSDK();
         sdk.init("app.cloopen.com", "8883");
         sdk.setAccount("8aaf07086f17620f016f322ee0cb1239", "d17fcce703144a2693e2f0586b72ae30");
-        sdk.setAppId("8aaf07086f17620f016f322ee12d1240");
+        sdk.setAppId("8a216da86f9cc12f016ff5c2a0742043");
         int rcode = randomCode();
         HashMap result = sdk.sendTemplateSMS(userName, "1", new String[]{rcode + "", "1"});
         if ("000000".equals(result.get("statusCode"))) {

@@ -15,4 +15,5 @@ public interface UserDataService {
     public UserData getUserData(HttpServletRequest req);
     public int getMaxLevelScore(HttpServletRequest req);
     public boolean updateUser(HttpServletRequest req);
+    public boolean updateNickName(HttpServletRequest req);
 }

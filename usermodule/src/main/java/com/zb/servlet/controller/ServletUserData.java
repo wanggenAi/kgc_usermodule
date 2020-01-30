@@ -350,4 +350,20 @@ public class ServletUserData extends HttpServlet {
         String headUrl = userService.getUserHeadImg(req);
         resp.getWriter().write(JSON.toJSONString(ResultData.success(headUrl)));
     }
+
+    /**
+     * 修改用户昵称
+     * 传入 uid nickName
+     * @param req
+     * @param resp
+     * @throws ServletException
+     * @throws IOException
+     */
+    private void updateNickName(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        if (userDataService.updateNickName(req)) {
+            resp.getWriter().write(JSON.toJSONString(ResultData.success(null)));
+            return;
+        }
+        resp.getWriter().write(JSON.toJSONString(ResultData.fail("修改失败")));
+    }
 }

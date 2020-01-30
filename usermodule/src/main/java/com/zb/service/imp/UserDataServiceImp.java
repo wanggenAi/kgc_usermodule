@@ -117,4 +117,15 @@ public class UserDataServiceImp implements UserDataService {
         long id = Long.parseLong(req.getParameter("uid"));
         return userDataDaoImp.getUserData(id);
     }
+
+    /**
+     * 修改用户的昵称 uid nickName
+     * @param req
+     * @return
+     */
+    public boolean updateNickName(HttpServletRequest req){
+        long id = Long.parseLong(req.getParameter("uid"));
+        String nickName = req.getParameter("nickName");
+        return userDataDaoImp.updateNickName(id, nickName);
+    }
 }
