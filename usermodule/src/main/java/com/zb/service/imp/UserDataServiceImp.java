@@ -1,9 +1,12 @@
 package com.zb.service.imp;
 
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import com.zb.dao.imp.UserDataDaoImp;
 import com.zb.entity.KgcUser;
+import com.zb.entity.PageInfo;
 import com.zb.entity.UserData;
 import com.zb.service.inter.UserDataService;
+import com.zb.util.general.Constant;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -52,6 +55,28 @@ public class UserDataServiceImp implements UserDataService {
         long id = Long.parseLong(req.getParameter("uid"));
         short num = Short.parseShort(req.getParameter("num"));
         return userDataDaoImp.updateSupportCount(id, num);
+    }
+
+    @Override
+    //100 成功 101数据库操作失败  102 K币不足
+    public int setKbRecord(HttpServletRequest req) {
+        long uid = Long.parseLong(req.getParameter("uid"));
+        String operaname = req.getParameter("operaname");
+        String detail = req.getParameter("detail");
+        short changekb = Short.parseShort(req.getParameter("changekb"));
+
+        if (changekb < 0) {
+            int dbkb = userDataDaoImp.getKbCount(uid);
+            if (dbkb - changekb < 0) {
+                return Constant.KB_NOT_ENOUGH;
+            }
+            if ((!userDataDaoImp.updateKbCount(uid, changekb)) || (!userDataDaoImp.setKbRecord(uid, operaname, detail, changekb))) {
+                return Constant.DB_ERROR;
+            }
+            return Constant.DB_SUCCESS;
+        }
+        return (userDataDaoImp.setKbRecord(uid, operaname, detail, changekb) &&
+                userDataDaoImp.updateKbCount(uid, changekb)) ? Constant.DB_SUCCESS : Constant.DB_ERROR;
     }
 
     // 帖子
@@ -120,12 +145,30 @@ public class UserDataServiceImp implements UserDataService {
 
     /**
      * 修改用户的昵称 uid nickName
+     *
      * @param req
      * @return
      */
-    public boolean updateNickName(HttpServletRequest req){
+    public boolean updateNickName(HttpServletRequest req) {
         long id = Long.parseLong(req.getParameter("uid"));
         String nickName = req.getParameter("nickName");
         return userDataDaoImp.updateNickName(id, nickName);
+    }
+
+    /**
+     * 获取K币记录分页数据，传入参数
+     * pagenum pagesize uid
+     *
+     * @param req
+     * @return
+     */
+    public PageInfo getKbRecord(HttpServletRequest req) {
+        long uid = Long.parseLong(req.getParameter("uid"));
+        int pageNum = Integer.parseInt(req.getParameter("pagenum"));
+        int pageSize = Integer.parseInt(req.getParameter("pagesize"));
+        PageInfo pageInfo = new PageInfo();
+        pageInfo.setCurrentPage(pageNum);
+        pageInfo.setPageSize(pageSize);
+        return userDataDaoImp.getKbRecord(uid, pageInfo);
     }
 }

@@ -1,10 +1,13 @@
 package com.zb.dao.imp;
 
 import com.zb.entity.KgcUser;
+import com.zb.entity.PageInfo;
 import com.zb.entity.UserData;
 import com.zb.util.database.BaseDao;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 public class UserDataDaoImp extends BaseDao {
     // 用户初始化一条数据
@@ -58,10 +61,22 @@ public class UserDataDaoImp extends BaseDao {
         return changeCount(sql, id, num);
     }
 
+    // 获取kb数量
+    public int getKbCount(long uid) {
+        String sql = "select kb_count from userdata where uid = ?";
+        return (int) selectCount(sql, uid);
+    }
+
     // 修改金额的值
     public boolean updateMoney(long id, double money) {
         String sql = "update userdata set money = money + ? where id = ?";
         return changeCount(sql, id, money);
+    }
+
+    // 获取金额值
+    public double getMoney(long uid) {
+        String sql = "select money from userdata where uid = ?";
+        return selectCount(sql, uid);
     }
 
     // 返回执行结果
@@ -104,6 +119,7 @@ public class UserDataDaoImp extends BaseDao {
 
     /**
      * 修改用户昵称
+     *
      * @param id
      * @param nickName
      * @return
@@ -121,7 +137,34 @@ public class UserDataDaoImp extends BaseDao {
      */
     public int getMaxVal2Level(int id) {
         String sql = "select maxval from levelrule where id = ?";
-        return selectCount(sql, id);
+        return (int) selectCount(sql, id);
+    }
+
+    /**
+     * 获取KB记录分页查询的结果
+     *
+     * @param uid
+     * @param pageInfo
+     * @return
+     */
+    public PageInfo getKbRecord(long uid, PageInfo pageInfo) {
+        String sql = "select * from kb_record where uid = ? order by lasttime desc";
+        pagedQuery(pageInfo, sql, uid);
+        return pageInfo;
+    }
+
+    /**
+     * 添加kb操作记录
+     * @param uid
+     * @param operaname
+     * @param detail
+     * @param changekb
+     * @return
+     */
+    public boolean setKbRecord(long uid, String operaname, String detail, short changekb) {
+        String sql = "insert into kb_record values(?,?,?,?,?)";
+        long curTimeStamp = System.currentTimeMillis();
+        return executeUpdate(sql, uid, operaname, changekb, detail, curTimeStamp) > 0 ? true : false;
     }
 
     public static void main(String[] args) {

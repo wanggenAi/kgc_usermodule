@@ -21,4 +21,15 @@ public class Constant {
      */
     public final static int VERIFY_CODE_UPDATE = 60;
 
+    /**
+     * kb不足
+     */
+    public final static int KB_NOT_ENOUGH = 102;
+
+    /**
+     * 数据库操作异常
+     */
+    public final static int DB_ERROR = 101;
+    public final static int DB_SUCCESS = 100;
+
 }

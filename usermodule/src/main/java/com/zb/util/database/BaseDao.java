@@ -200,7 +200,7 @@ public class BaseDao {
     /**
      * 查询总记录数
      */
-    protected int selectCount(String sql, Object... args) {
+    protected double selectCount(String sql, Object... args) {
         Connection conn = null;
         PreparedStatement pst = null;
         ResultSet rs = null;
@@ -246,7 +246,7 @@ public class BaseDao {
             // 调用转换方法，获取List<Map>集合
             list = convertList(rs);
             String countSql = "select count(*) from (" + sql + ") a";
-            int count = selectCount(countSql, args);
+            int count = (int)selectCount(countSql, args);
             pageInfo.setList(list);
             pageInfo.setTotalCount(count);
             pageInfo.setTotalPage((int) Math.ceil(count / pageInfo.getPageSize())); // 计算总页数

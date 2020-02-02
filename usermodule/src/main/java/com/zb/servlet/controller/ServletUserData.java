@@ -3,6 +3,7 @@ package com.zb.servlet.controller;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.zb.entity.District;
+import com.zb.entity.PageInfo;
 import com.zb.entity.TbSignIn;
 import com.zb.entity.UserData;
 import com.zb.entity.respentity.ResultData;
@@ -366,4 +367,39 @@ public class ServletUserData extends HttpServlet {
         }
         resp.getWriter().write(JSON.toJSONString(ResultData.fail("修改失败")));
     }
+
+    /**
+     * 获取用户K币的历史记录
+     * 传入参数 pagenum pagesize uid
+     * @param req
+     * @param resp
+     * @throws ServletException
+     * @throws IOException
+     */
+    private void getKbRecord(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        PageInfo pageInfo = userDataService.getKbRecord(req);
+        resp.getWriter().write(JSONObject.toJSONString(ResultData.success(pageInfo)));
+    }
+
+    /**
+     * 记录kb的操作记录
+     * 传入参数 uid operaname detail changekb
+     * @param req
+     * @param resp
+     * @throws ServletException
+     * @throws IOException
+     * 100 成功 101数据库操作失败  102 K币不足
+     */
+    private void setKbRecord(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        int result = userDataService.setKbRecord(req);
+        if (result == Constant.DB_ERROR) {
+            resp.getWriter().write(JSONObject.toJSONString(ResultData.fail("数据库操作失败")));
+            return;
+        } else if (result == Constant.KB_NOT_ENOUGH) {
+            resp.getWriter().write(JSONObject.toJSONString(ResultData.fail("K币不足，无法操作")));
+            return;
+        }
+        resp.getWriter().write(JSONObject.toJSONString(ResultData.success("操作成功")));
+    }
+
 }
